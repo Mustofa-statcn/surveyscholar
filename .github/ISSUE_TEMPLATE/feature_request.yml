@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest something the app should do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        SurveyScholar is deliberately small: one file, no build step, single
+        interviewer, local-first. Proposals that fit inside those constraints are
+        much more likely to land. See the "Extending it" table in docs/architecture.md.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The fieldwork problem
+      description: What goes wrong today, in the field, without this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried
+      description: Workarounds, other tools, why they didn't work.
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This doesn't require a build step
+        - label: This works offline, or degrades cleanly when offline
+        - label: This doesn't break existing entry IDs or stored responses

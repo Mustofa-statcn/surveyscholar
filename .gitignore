@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# field data — never commit collected responses or backups
+*.backup.json
+surveyscholar-backup*.json
+backups/
+exports/
+*.xlsx
+*.csv
+!docs/**/*.xlsx
+
+# secrets — the Apps Script /exec URL is a write endpoint, keep it out of the repo
+.env
+.env.*
+webapp-url.txt
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

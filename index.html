@@ -1,0 +1,2678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17403a">
+<title>SurveyScholar</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --paper:#f4f3ef; --card:#ffffff; --ink:#14201d; --ink-2:#5d6b66;
+  --line:#dfded7; --line-2:#ecebe5;
+  --accent:#17403a; --accent-fg:#ffffff; --accent-soft:#e4ede9; --accent-soft-fg:#0d2a26;
+  --pending:#8a5b00; --pending-bg:#fbf1dc;
+  --fail:#a02620; --fail-bg:#fbe7e5;
+  --ok:#1d6b4f; --ok-bg:#e2f0e8;
+  --r:12px; --r-lg:18px;
+  --pad:16px;
+  --shadow:0 1px 2px rgba(20,32,29,.06), 0 8px 24px -16px rgba(20,32,29,.35);
+  color-scheme:light;
+}
+/* one dark palette, reachable two ways: the device setting, or the in-app toggle */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#111614; --card:#182120; --ink:#e9ece9; --ink-2:#97a49f;
+    --line:#2b3634; --line-2:#222c2a;
+    --accent:#7fc5ae; --accent-fg:#0f1614; --accent-soft:#1d2c28; --accent-soft-fg:#7fc5ae;
+    --pending:#e0b062; --pending-bg:#2e2617;
+    --fail:#f0928b; --fail-bg:#33201e;
+    --ok:#7fc5ae; --ok-bg:#1b2b26;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111614; --card:#182120; --ink:#e9ece9; --ink-2:#97a49f;
+  --line:#2b3634; --line-2:#222c2a;
+  --accent:#7fc5ae; --accent-fg:#0f1614; --accent-soft:#1d2c28; --accent-soft-fg:#7fc5ae;
+  --pending:#e0b062; --pending-bg:#2e2617;
+  --fail:#f0928b; --fail-bg:#33201e;
+  --ok:#7fc5ae; --ok-bg:#1b2b26;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+#root{min-height:100dvh}
+.wrap{max-width:560px;margin:0 auto;padding:0 var(--pad) 96px}
+h1,h2,h3{margin:0;font-weight:640;letter-spacing:-.01em;line-height:1.25}
+h1{font-size:22px}
+h2{font-size:17px}
+h3{font-size:15px}
+p{margin:0}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+/* header */
+.topbar{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line-2)}
+.topbar-in{max-width:560px;margin:0 auto;padding:14px var(--pad) 12px;display:flex;align-items:baseline;gap:10px}
+.brand{font-weight:680;letter-spacing:-.02em;font-size:19px}
+.brand span{color:var(--accent)}
+
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{appearance:none;border:0;background:none;color:var(--ink-2);padding:9px 2px 10px;display:flex;flex-direction:column;
+  align-items:center;gap:3px;font-size:11px;font-weight:560;cursor:pointer}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current="page"]{color:var(--accent)}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px}
+.card + .card{margin-top:12px}
+.row{display:flex;align-items:center;gap:10px}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.stack-sm{display:flex;flex-direction:column;gap:8px}
+.sep{height:1px;background:var(--line-2);margin:14px -16px}
+
+/* buttons */
+button{font:inherit}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r);
+  padding:11px 14px;font-weight:580;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn-danger{color:var(--fail);border-color:var(--line)}
+.btn-ghost{border-color:transparent;background:transparent;color:var(--accent);padding:8px 6px;min-height:38px}
+.btn-block{width:100%}
+.btn-sm{min-height:36px;padding:7px 11px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.iconbtn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink-2);width:38px;height:38px;
+  border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.iconbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* fab */
+.fab{position:fixed;right:max(16px,calc(50% - 280px + 16px));bottom:calc(72px + env(safe-area-inset-bottom));z-index:25;
+  height:56px;padding:0 20px;border-radius:28px;background:var(--accent);color:var(--accent-fg);border:0;
+  font-weight:640;font-size:16px;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow);cursor:pointer}
+.fab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
+/* fields */
+label.field{display:block}
+.lbl{display:block;font-weight:580;font-size:15px;margin-bottom:7px}
+.req{color:var(--fail);margin-left:3px}
+input[type=text],input[type=number],input[type=date],input[type=url],textarea,select{
+  width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);
+  padding:11px 12px;font:inherit;min-height:46px}
+textarea{min-height:104px;resize:vertical}
+select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d6b66' stroke-width='2' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:38px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-within{
+  outline:2px solid var(--accent);outline-offset:1px}
+.invalid input,.invalid textarea,.invalid select,.invalid .opts{border-color:var(--fail)}
+.err{color:var(--fail);font-size:13px;margin-top:6px}
+.opts{display:flex;flex-direction:column;gap:2px}
+.opt{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--card);cursor:pointer;min-height:46px}
+.opt input{accent-color:var(--accent);width:20px;height:20px;margin:0;flex:none}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.scale{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.scale button{flex:none;min-width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-weight:600;cursor:pointer}
+.scale button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.qimg{width:100%;border-radius:var(--r);border:1px solid var(--line);margin-bottom:10px;display:block}
+.thumb{width:100%;max-height:220px;object-fit:cover;border-radius:var(--r);border:1px solid var(--line)}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;
+  border:1px solid transparent;white-space:nowrap}
+.badge.local{background:var(--pending-bg);color:var(--pending)}
+.badge.synced{background:var(--ok-bg);color:var(--ok)}
+.badge.failed{background:var(--fail-bg);color:var(--fail)}
+.badge.plain{background:var(--line-2);color:var(--ink-2)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* list */
+.entry{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line-2)}
+.entry:first-child{border-top:0}
+.eid{font-size:16px;font-weight:620;letter-spacing:.02em}
+
+/* hero number */
+.hero{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 18px 18px}
+.hero .big{font-size:60px;line-height:1;font-weight:660;letter-spacing:-.035em;color:var(--accent)}
+.bar{height:10px;border-radius:5px;background:var(--line-2);overflow:hidden;margin-top:12px}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .35s ease}
+
+/* sheet (full-screen, never overlaps page content) */
+.sheet{position:fixed;inset:0;z-index:60;background:var(--paper);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top)}
+.sheet-head{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line-2);z-index:2}
+.sheet-head-in{max-width:560px;margin:0 auto;padding:10px var(--pad);display:flex;align-items:center;gap:10px}
+.sheet-head h2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-body .wrap{padding-bottom:110px}
+.sheet-foot{border-top:1px solid var(--line);background:var(--card);padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom))}
+.sheet-foot-in{max-width:560px;margin:0 auto;display:flex;gap:10px}
+
+/* dialog */
+.scrim{position:fixed;inset:0;z-index:90;background:rgba(10,16,15,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+.dialog{background:var(--card);border-radius:var(--r-lg);max-width:420px;width:100%;padding:20px;box-shadow:var(--shadow)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:95;
+  background:var(--accent);color:var(--accent-fg);padding:11px 16px;border-radius:12px;font-weight:580;font-size:14px;
+  max-width:92vw;box-shadow:var(--shadow);text-align:center}
+.banner{border-radius:var(--r);padding:11px 13px;font-size:14px;border:1px solid var(--line)}
+.banner.warn{background:var(--pending-bg);color:var(--pending);border-color:transparent}
+.banner.info{background:var(--accent-soft);color:var(--accent-soft-fg);border-color:transparent}
+.empty{text-align:center;padding:34px 10px;color:var(--ink-2)}
+.qcard{border:1px solid var(--line);border-radius:var(--r);padding:12px;background:var(--card);margin-bottom:10px}
+.qcard.active{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.grab{cursor:grab;touch-action:none}
+.drag-over{border-color:var(--accent);background:var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;background:var(--card);color:var(--ink-2);cursor:pointer}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-soft-fg)}
+pre.code{background:var(--line-2);border-radius:var(--r);padding:12px;overflow-x:auto;font-size:12px;line-height:1.45;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;margin:0}
+.sect{margin:22px 0 2px;padding:0 2px}
+.sect:first-child{margin-top:6px}
+.sect h2{font-size:18px;letter-spacing:-.015em}
+.sect .rule{height:2px;background:var(--accent);opacity:.5;border-radius:1px;margin:8px 0 0;width:44px}
+.sect p{margin-top:6px}
+.cond{border-left:3px solid var(--accent-soft);padding-left:11px;margin-left:1px}
+.cond-note{font-size:12px;color:var(--accent-soft-fg);background:var(--accent-soft);border-radius:8px;
+  padding:4px 9px;display:inline-block;margin-bottom:6px}
+.theme-btn{margin-left:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<noscript>SurveyScholar needs JavaScript enabled.</noscript>
+<script>
+(function(){
+  try{
+    var t=localStorage.getItem('ss-theme');
+    if(t==='dark'||t==='light') document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}
+})();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin></script>
+<script>
+(function(){
+"use strict";
+var html = htm.bind(React.createElement);
+var useState=React.useState, useEffect=React.useEffect, useRef=React.useRef,
+    useMemo=React.useMemo, useCallback=React.useCallback;
+
+/* ============================ utils ============================ */
+function uid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+}
+function nowISO(){ return new Date().toISOString(); }
+function fmtDT(iso){
+  if(!iso) return '';
+  try{ return new Date(iso).toLocaleString(undefined,{year:'2-digit',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return iso; }
+}
+function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString(); }catch(e){ return iso; } }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+/* theme: 'system' follows the device, 'light'/'dark' pin it. Stored per device,
+   outside IndexedDB, so it can be applied before the first paint. */
+function readTheme(){
+  try{ var t=localStorage.getItem('ss-theme'); return (t==='dark'||t==='light')?t:'system'; }catch(e){ return 'system'; }
+}
+function applyTheme(mode){
+  var el=document.documentElement;
+  if(mode==='system'){ el.removeAttribute('data-theme'); try{ localStorage.removeItem('ss-theme'); }catch(e){} }
+  else { el.setAttribute('data-theme',mode); try{ localStorage.setItem('ss-theme',mode); }catch(e){} }
+  var meta=document.querySelector('meta[name=theme-color]');
+  if(meta) meta.setAttribute('content', effectiveTheme(mode)==='dark'?'#111614':'#17403a');
+  return mode;
+}
+function systemPrefersDark(){
+  return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function effectiveTheme(mode){ return mode==='system'?(systemPrefersDark()?'dark':'light'):mode; }
+function download(blob, name){
+  var a=document.createElement('a'), u=URL.createObjectURL(blob);
+  a.href=u; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(u); a.remove(); }, 400);
+}
+var TYPES=[
+  ['section','Section heading'],
+  ['short_text','Short answer'],['long_text','Paragraph'],['multiple_choice','Multiple choice (one)'],
+  ['checkbox','Checkboxes (many)'],['dropdown','Dropdown'],['linear_scale','Linear scale'],
+  ['date','Date'],['number','Number'],['image_upload','Photo']
+];
+function typeLabel(t){ for(var i=0;i<TYPES.length;i++) if(TYPES[i][0]===t) return TYPES[i][1]; return t; }
+function isChoice(t){ return t==='multiple_choice'||t==='checkbox'||t==='dropdown'; }
+function isSection(t){ return t==='section'; }
+/* a section carries no answer, so it is never validated, exported or synced as a column */
+function answerable(list){ return (list||[]).filter(function(q){ return !isSection(q.type); }); }
+function byOrder(a,b){ return (a.order||0)-(b.order||0); }
+
+/* ---- conditional display ----
+   A condition always points at an EARLIER question, which makes cycles impossible
+   and lets one ordered pass resolve the whole chain. */
+var COND_OPS=[['any','is one of'],['none','is not one of'],['answered','has any answer']];
+function condOpLabel(op){ for(var i=0;i<COND_OPS.length;i++) if(COND_OPS[i][0]===op) return COND_OPS[i][1]; return 'is one of'; }
+function hasAnswer(v){ return !(v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0)); }
+function conditionMet(cond, answers){
+  if(!cond || !cond.q) return true;
+  var v=(answers||{})[cond.q];
+  if(!hasAnswer(v)) return cond.op==='none' ? false : false;
+  if(cond.op==='answered') return true;
+  var want=(cond.values||[]).map(String);
+  var mine=Array.isArray(v)?v.map(String):[String(v)];
+  var hit=mine.some(function(x){ return want.indexOf(x)>=0; });
+  return cond.op==='none' ? !hit : hit;
+}
+/* Visible elements in order. A hidden section hides everything under it until the next
+   section, and a hidden question's own answer stops counting for anything below it. */
+function visibleElements(questions, answers){
+  var live=Object.assign({},answers||{}), out=[], sectionHidden=false;
+  (questions||[]).slice().sort(byOrder).forEach(function(q){
+    var ok=conditionMet(q.showIf,live);
+    if(isSection(q.type)){ sectionHidden=!ok; if(ok) out.push(q); return; }
+    if(sectionHidden||!ok){ delete live[q.id]; return; }
+    out.push(q);
+  });
+  return out;
+}
+function visibleQuestions(questions, answers){ return answerable(visibleElements(questions,answers)); }
+/* Answers belonging to hidden questions never get saved, exported or synced. */
+function pruneHiddenAnswers(questions, answers){
+  var keep={};
+  visibleQuestions(questions,answers).forEach(function(q){ keep[q.id]=1; });
+  var out={};
+  Object.keys(answers||{}).forEach(function(k){ if(keep[k]) out[k]=answers[k]; });
+  return out;
+}
+function condSummary(q, questions){
+  if(!q.showIf||!q.showIf.q) return '';
+  var parent=(questions||[]).filter(function(x){ return x.id===q.showIf.q; })[0];
+  var name=parent?(parent.label||'a question'):'a removed question';
+  if(q.showIf.op==='answered') return 'Shown once “'+name+'” is answered';
+  return 'Shown when “'+name+'” '+condOpLabel(q.showIf.op)+': '+(q.showIf.values||[]).join(', ');
+}
+/* Drops conditions that can no longer hold: parent deleted, parent moved after the child,
+   or parent turned into a section. Returns what it cleared so the user can be told. */
+function sanitizeConditions(questions){
+  var list=(questions||[]).slice().sort(byOrder).map(function(q,i){ return Object.assign({},q,{order:i}); });
+  var seen={}, cleared=[];
+  list.forEach(function(q){
+    if(q.showIf && q.showIf.q){
+      var ok=seen[q.showIf.q];
+      if(!ok){ delete q.showIf; cleared.push(q.label||'Untitled question'); }
+    }
+    if(!isSection(q.type)) seen[q.id]=1;
+  });
+  return {questions:list, cleared:cleared};
+}
+
+/* ============================ IndexedDB ============================ */
+var DB_NAME='surveyscholar', DB_VER=1, _db=null;
+var STORES=['questionnaires','versions','responses','counters','settings','drafts'];
+function openDB(){
+  if(_db) return Promise.resolve(_db);
+  return new Promise(function(res,rej){
+    var req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=function(){
+      var db=req.result;
+      if(!db.objectStoreNames.contains('questionnaires')) db.createObjectStore('questionnaires',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('versions')) db.createObjectStore('versions',{keyPath:'key'});
+      if(!db.objectStoreNames.contains('responses')){
+        var r=db.createObjectStore('responses',{keyPath:'entryId'});
+        r.createIndex('by_q','questionnaireId',{unique:false});
+        r.createIndex('by_sync','syncStatus',{unique:false});
+      }
+      if(!db.objectStoreNames.contains('counters')) db.createObjectStore('counters',{keyPath:'year'});
+      if(!db.objectStoreNames.contains('settings')) db.createObjectStore('settings',{keyPath:'key'});
+      if(!db.objectStoreNames.contains('drafts')) db.createObjectStore('drafts',{keyPath:'id'});
+    };
+    req.onsuccess=function(){ _db=req.result; res(_db); };
+    req.onerror=function(){ rej(req.error); };
+  });
+}
+function tx(stores, mode, work){
+  return openDB().then(function(db){
+    return new Promise(function(res,rej){
+      var t=db.transaction(stores,mode), out;
+      var api={};
+      stores.forEach(function(s){ api[s]=t.objectStore(s); });
+      try{ out=work(api,t); }catch(e){ try{t.abort();}catch(_){ } return rej(e); }
+      t.oncomplete=function(){ res(typeof out==='function'?out():out); };
+      t.onerror=function(){ rej(t.error); };
+      t.onabort=function(){ rej(t.error||new Error('Transaction aborted')); };
+    });
+  });
+}
+function rq(request){ return new Promise(function(res,rej){ request.onsuccess=function(){res(request.result);}; request.onerror=function(){rej(request.error);}; }); }
+function dbGet(store,key){ return openDB().then(function(db){ return rq(db.transaction(store).objectStore(store).get(key)); }); }
+function dbAll(store){ return openDB().then(function(db){ return rq(db.transaction(store).objectStore(store).getAll()); }); }
+function dbPut(store,val){ return tx([store],'readwrite',function(a){ a[store].put(val); return val; }); }
+function dbDel(store,key){ return tx([store],'readwrite',function(a){ a[store].delete(key); }); }
+function responsesFor(qid){
+  return openDB().then(function(db){
+    var idx=db.transaction('responses').objectStore('responses').index('by_q');
+    return rq(idx.getAll(IDBKeyRange.only(qid)));
+  });
+}
+
+/* ---- settings ---- */
+function getSettings(){
+  return dbAll('settings').then(function(rows){
+    var s={interviewer:'', sheetUrl:'', activeQuestionnaireId:null};
+    rows.forEach(function(r){ s[r.key]=r.value; });
+    return s;
+  });
+}
+function setSetting(key,value){ return dbPut('settings',{key:key,value:value}); }
+
+/* ---- entry id: generated inside one transaction (no collisions) ---- */
+function createResponse(base){
+  return tx(['counters','responses'],'readwrite',function(a){
+    var year=new Date().getFullYear(), yy=String(year).slice(-2), entryId=null;
+    a.counters.get(year).onsuccess=function(ev){
+      var cur=ev.target.result ? ev.target.result.seq : 0;
+      var next=cur+1;
+      entryId=yy+String(next).padStart(5,'0');
+      a.counters.put({year:year, seq:next});
+      var rec=Object.assign({},base,{entryId:entryId});
+      a.responses.add(rec); // .add -> aborts tx on duplicate key, counter rolls back
+    };
+    return function(){ return entryId; };
+  });
+}
+function updateResponse(entryId, patch){
+  return tx(['responses'],'readwrite',function(a,t){
+    var saved=null, missing=false;
+    a.responses.get(entryId).onsuccess=function(ev){
+      var cur=ev.target.result;
+      if(!cur){ missing=true; t.abort(); return; }
+      saved=Object.assign({},cur,patch,{entryId:entryId, createdAt:cur.createdAt});
+      a.responses.put(saved);
+    };
+    return function(){ return saved; };
+  }).catch(function(e){
+    throw new Error('Entry '+entryId+' could not be updated: '+(e&&e.message?e.message:'not found'));
+  });
+}
+/* keep the counter ahead of any restored data */
+function repairCounters(){
+  return dbAll('responses').then(function(rows){
+    var max={};
+    rows.forEach(function(r){
+      var yy=String(r.entryId).slice(0,2), seq=parseInt(String(r.entryId).slice(2),10);
+      var year=2000+parseInt(yy,10);
+      if(!isNaN(seq)) max[year]=Math.max(max[year]||0,seq);
+    });
+    var years=Object.keys(max);
+    if(!years.length) return;
+    return tx(['counters'],'readwrite',function(a){
+      years.forEach(function(y){
+        var year=parseInt(y,10);
+        a.counters.get(year).onsuccess=function(ev){
+          var cur=ev.target.result?ev.target.result.seq:0;
+          if(max[year]>cur) a.counters.put({year:year,seq:max[year]});
+        };
+      });
+    });
+  });
+}
+
+/* ---- soft delete ---- */
+var PURGE_DAYS=30;
+function isLive(r){ return !r.isDeleted; }
+function liveOnly(list){ return (list||[]).filter(isLive); }
+function softDelete(entryId){
+  var t=nowISO();
+  return updateResponse(entryId,{isDeleted:true, deletedAt:t, updatedAt:t, syncStatus:'local', syncError:null});
+}
+function restoreEntry(entryId){
+  var t=nowISO();
+  return updateResponse(entryId,{isDeleted:false, deletedAt:null, updatedAt:t, syncStatus:'local', syncError:null});
+}
+function daysSince(iso){
+  if(!iso) return 0;
+  return (Date.now()-new Date(iso).getTime())/86400000;
+}
+/* physically removed only after 30 days AND once the deletion reached the sheet */
+function purgeOldDeleted(hasSheet){
+  return dbAll('responses').then(function(rows){
+    var gone=rows.filter(function(r){
+      return r.isDeleted && (r.syncStatus==='synced' || !hasSheet) && daysSince(r.deletedAt)>PURGE_DAYS;
+    });
+    if(!gone.length) return 0;
+    return tx(['responses','drafts'],'readwrite',function(a){
+      gone.forEach(function(r){ a.responses.delete(r.entryId); a.drafts.delete('entry:'+r.entryId); });
+    }).then(function(){ return gone.length; });
+  });
+}
+
+/* ---- questionnaire versioning ---- */
+function snapshotKey(qid,v){ return qid+':'+v; }
+function saveQuestionnaire(q, opts){
+  opts=opts||{};
+  var next=Object.assign({},q,{updatedAt:nowISO()});
+  return tx(['questionnaires','versions'],'readwrite',function(a){
+    if(opts.bumpVersion) next.version=(q.version||1)+1;
+    a.questionnaires.put(next);
+    a.versions.put({key:snapshotKey(next.id,next.version), questionnaireId:next.id, version:next.version,
+                    title:next.title, questions:clone(next.questions||[]), savedAt:nowISO()});
+    return next;
+  });
+}
+function getSnapshot(qid,v){ return dbGet('versions',snapshotKey(qid,v)); }
+function questionsSignature(qs){
+  return JSON.stringify((qs||[]).map(function(q){
+    return [q.id,q.type,q.label,(q.options||[]).join('\u001f'),q.required,q.min,q.max,q.order];
+  }));
+}
+
+/* ============================ sync ============================ */
+function postToScript(url, payload){
+  return fetch(url,{
+    method:'POST',
+    // text/plain keeps it a "simple request" -> no CORS preflight, which Apps Script cannot answer
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload),
+    redirect:'follow'
+  }).then(function(r){
+    return r.text().then(function(t){
+      var data=null; try{ data=JSON.parse(t); }catch(e){}
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      if(data && data.ok===false) throw new Error(data.error||'Script reported an error');
+      return data||{ok:true};
+    });
+  });
+}
+function buildSyncPayload(entry, qn, questions, interviewer){
+  var answers={};
+  questions=answerable(questions);
+  questions.forEach(function(q){
+    var v=entry.answers ? entry.answers[q.id] : undefined;
+    if(Array.isArray(v)) v=v.join(', ');
+    if(typeof v==='string' && v.slice(0,11)==='data:image/') v='[photo stored on device]';
+    answers[q.id]=(v===undefined||v===null)?'':v;
+  });
+  return {
+    action:'submit',
+    interviewer:interviewer||'',
+    questionnaire:{id:qn.id, title:qn.title||'Responses', version:entry.questionnaireVersion||qn.version||1},
+    questions:questions.map(function(q){ return {id:q.id,label:q.label,order:q.order,type:q.type}; }),
+    entry:{entryId:entry.entryId, createdAt:entry.createdAt, updatedAt:entry.updatedAt,
+           deleted:!!entry.isDeleted, deletedAt:entry.deletedAt||'', answers:answers}
+  };
+}
+function syncOne(entry, ctx){
+  if(!ctx.sheetUrl) return Promise.reject(new Error('No Sheet link set'));
+  var qn=ctx.qById[entry.questionnaireId];
+  if(!qn) return Promise.reject(new Error('Questionnaire missing'));
+  return getSnapshot(entry.questionnaireId, entry.questionnaireVersion).then(function(snap){
+    var questions=(snap&&snap.questions)||qn.questions||[];
+    return postToScript(ctx.sheetUrl, buildSyncPayload(entry,qn,questions,ctx.interviewer));
+  }).then(function(){
+    return updateResponse(entry.entryId,{syncStatus:'synced', syncedAt:nowISO(), syncError:null});
+  }, function(err){
+    return updateResponse(entry.entryId,{syncStatus:'failed', syncError:String(err.message||err)})
+      .then(function(){ throw err; });
+  });
+}
+function syncPending(onProgress){
+  return Promise.all([getSettings(),dbAll('questionnaires'),dbAll('responses')]).then(function(r){
+    var s=r[0], qs=r[1], all=r[2];
+    if(!s.sheetUrl) throw new Error('Add your Google Sheet link in Functions first.');
+    var qById={}; qs.forEach(function(q){ qById[q.id]=q; });
+    var ctx={sheetUrl:s.sheetUrl, interviewer:s.interviewer, qById:qById};
+    var pending=all.filter(function(e){ return e.syncStatus!=='synced'; })
+                   .sort(function(a,b){ return a.entryId<b.entryId?-1:1; });
+    var done=0, ok=0, fail=0;
+    return pending.reduce(function(p,e){
+      return p.then(function(){
+        return syncOne(e,ctx).then(function(){ok++;},function(){fail++;}).then(function(){
+          done++; if(onProgress) onProgress(done,pending.length);
+        });
+      });
+    }, Promise.resolve()).then(function(){ return {total:pending.length, ok:ok, fail:fail}; });
+  });
+}
+
+/* ============================ export ============================ */
+function columnsFor(qn, responses){
+  return dbAll('versions').then(function(vers){
+    var cols=[], seen={};
+    answerable(qn.questions).forEach(function(q){ if(!seen[q.id]){seen[q.id]=1; cols.push({id:q.id,label:q.label});} });
+    var used={}; responses.forEach(function(r){ used[snapshotKey(r.questionnaireId,r.questionnaireVersion)]=1; });
+    vers.filter(function(v){ return v.questionnaireId===qn.id && used[v.key]; })
+        .sort(function(a,b){ return a.version-b.version; })
+        .forEach(function(v){
+          answerable(v.questions).forEach(function(q){
+            if(!seen[q.id]){ seen[q.id]=1; cols.push({id:q.id,label:q.label+' (removed)'}); }
+          });
+        });
+    return cols;
+  });
+}
+function cellValue(v){
+  if(v===undefined||v===null) return '';
+  if(Array.isArray(v)) return v.join(', ');
+  if(typeof v==='string' && v.slice(0,11)==='data:image/') return '[photo]';
+  return v;
+}
+function buildRows(qn, responses, cols, interviewer){
+  var header=['Timestamp','Entry ID','Interviewer','Sync status','Last updated','Form version']
+    .concat(cols.map(function(c){ return c.label; }));
+  var rows=responses.slice().sort(function(a,b){ return a.createdAt<b.createdAt?-1:1; }).map(function(r){
+    var base=[fmtDT(r.createdAt), r.entryId, r.interviewer||interviewer||'', r.syncStatus, fmtDT(r.updatedAt), r.questionnaireVersion];
+    return base.concat(cols.map(function(c){ return cellValue(r.answers?r.answers[c.id]:''); }));
+  });
+  return [header].concat(rows);
+}
+function exportXlsx(qn, responses, interviewer){
+  return columnsFor(qn,responses).then(function(cols){
+    var aoa=buildRows(qn,responses,cols,interviewer);
+    var wb=XLSX.utils.book_new(), ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols']=aoa[0].map(function(h){ return {wch:Math.min(42,Math.max(11,String(h).length+4))}; });
+    var name=(qn.title||'Responses').replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31)||'Responses';
+    XLSX.utils.book_append_sheet(wb,ws,name);
+    XLSX.writeFile(wb, 'surveyscholar-'+slug(qn.title)+'-'+new Date().toISOString().slice(0,10)+'.xlsx');
+  });
+}
+function exportCsv(qn, responses, interviewer){
+  return columnsFor(qn,responses).then(function(cols){
+    var aoa=buildRows(qn,responses,cols,interviewer);
+    var csv=aoa.map(function(row){
+      return row.map(function(c){
+        c=String(c===undefined||c===null?'':c);
+        return /[",\n]/.test(c) ? '"'+c.replace(/"/g,'""')+'"' : c;
+      }).join(',');
+    }).join('\r\n');
+    download(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),
+      'surveyscholar-'+slug(qn.title)+'-'+new Date().toISOString().slice(0,10)+'.csv');
+  });
+}
+function slug(s){ return String(s||'form').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'form'; }
+
+function backupAll(){
+  return Promise.all(STORES.map(function(s){ return dbAll(s); })).then(function(res){
+    var data={app:'surveyscholar', version:1, exportedAt:nowISO(), stores:{}};
+    STORES.forEach(function(s,i){ data.stores[s]=res[i]; });
+    download(new Blob([JSON.stringify(data)],{type:'application/json'}),
+      'surveyscholar-backup-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json');
+    return data;
+  });
+}
+function restoreAll(data, mode){
+  if(!data || data.app!=='surveyscholar' || !data.stores) throw new Error('Not a SurveyScholar backup file');
+  return tx(STORES,'readwrite',function(a){
+    STORES.forEach(function(s){
+      if(mode==='replace') a[s].clear();
+      (data.stores[s]||[]).forEach(function(rec){ a[s].put(rec); });
+    });
+  }).then(repairCounters);
+}
+
+/* ============================ questionnaire import ============================ */
+var IMPORT_HEADERS=['Order','Question Type','Label','Options','Required','Image Filename',
+  'Show If Question','Show If Condition','Show If Values'];
+var HEADER_KEYS={order:'order', questiontype:'type', type:'type', label:'label', question:'label',
+  questiontext:'label', options:'options', option:'options', required:'required', mandatory:'required',
+  imagefilename:'image', image:'image', imagefile:'image',
+  showifquestion:'condq', showif:'condq', condition:'condq', parent:'condq', parentquestion:'condq',
+  showifcondition:'condop', conditiontype:'condop', showifoperator:'condop',
+  showifvalues:'condvals', showifvalue:'condvals', conditionvalues:'condvals'};
+var COND_WORDS={'':'any', 'is':'any', 'any':'any', 'isoneof':'any', 'equals':'any', 'in':'any',
+  'isnot':'none', 'none':'none', 'isnotoneof':'none', 'notequals':'none', 'not':'none',
+  'answered':'answered', 'hasanyanswer':'answered', 'any_answer':'answered', 'isanswered':'answered'};
+function normHeader(h){ return String(h===undefined||h===null?'':h).trim().toLowerCase().replace(/[^a-z]/g,''); }
+function mapColumns(headerRow){
+  var map={};
+  (headerRow||[]).forEach(function(h,i){
+    var k=HEADER_KEYS[normHeader(h)];
+    if(k && map[k]===undefined) map[k]=i;
+  });
+  return map;
+}
+function validTypeList(){ return TYPES.map(function(t){ return t[0]; }); }
+
+/* Pure: takes an array of rows (row 0 = headers), returns questions + per-row problems. */
+function validateImportRows(aoa){
+  var errors=[], warnings=[], questions=[];
+  if(!aoa || !aoa.length) return {errors:[{row:0,message:'The sheet is empty.'}], warnings:warnings, questions:questions};
+  var map=mapColumns(aoa[0]);
+  var missing=['type','label'].filter(function(k){ return map[k]===undefined; });
+  if(missing.length) return {
+    errors:[{row:1,message:'The header row must contain these columns: '+IMPORT_HEADERS.join(' | ')+'. Download the template and use it as-is.'}],
+    warnings:[], questions:[]};
+  var seenOrder={}, seenLabel={};
+  for(var i=1;i<aoa.length;i++){
+    var r=aoa[i]||[], rowNo=i+1;
+    var cell=function(k){
+      if(map[k]===undefined) return '';
+      var v=r[map[k]];
+      return String(v===undefined||v===null?'':v).trim();
+    };
+    if(!cell('order') && !cell('type') && !cell('label') && !cell('options') && !cell('required')) continue;
+    var bad=false, label=cell('label'), rawType=cell('type');
+    var q={id:uid(), label:label, required:false};
+
+    if(!label){ errors.push({row:rowNo,message:'Label is empty — every question needs its text.'}); bad=true; }
+    else if(seenLabel[label.toLowerCase()]) warnings.push({row:rowNo,message:'The same question text appears more than once.'});
+    seenLabel[label.toLowerCase()]=1;
+
+    var type=rawType.toLowerCase().replace(/[\s\-]+/g,'_');
+    if(!rawType){ errors.push({row:rowNo,message:'Question Type is empty.'}); bad=true; }
+    else if(validTypeList().indexOf(type)<0){
+      errors.push({row:rowNo,message:'"'+rawType+'" is not a Question Type. Use one of: '+validTypeList().join(', ')}); bad=true;
+    }
+    q.type=type;
+
+    var ord=cell('order');
+    if(ord && !/^\d+$/.test(ord)){ errors.push({row:rowNo,message:'Order "'+ord+'" is not a whole number.'}); bad=true; }
+    var order=ord?parseInt(ord,10):(questions.length+1);
+    if(seenOrder[order]) warnings.push({row:rowNo,message:'Order '+order+' is used twice — the sheet order is kept instead.'});
+    seenOrder[order]=1;
+    q.order=order;
+
+    var opts=cell('options');
+    if(isChoice(type)){
+      var list=opts.split(';').map(function(s){ return s.trim(); }).filter(Boolean);
+      if(!list.length){ errors.push({row:rowNo,message:'A '+type+' question needs options, separated by semicolons.'}); bad=true; }
+      else if(list.length===1) warnings.push({row:rowNo,message:'Only one option — check that this is intended.'});
+      q.options=list;
+    } else if(type==='linear_scale'){
+      var parts=opts.split(';').map(function(s){ return s.trim(); }).filter(function(s){ return s!==''; });
+      if(parts.length!==2 || !/^-?\d+$/.test(parts[0]) || !/^-?\d+$/.test(parts[1])){
+        errors.push({row:rowNo,message:'A linear_scale needs Options written as minimum;maximum, for example 1;5.'}); bad=true;
+      } else {
+        var lo=parseInt(parts[0],10), hi=parseInt(parts[1],10);
+        if(hi<=lo){ errors.push({row:rowNo,message:'The scale maximum must be larger than the minimum.'}); bad=true; }
+        else if(hi-lo>20){ errors.push({row:rowNo,message:'That scale has more than 21 points — use a narrower range.'}); bad=true; }
+        else { q.min=lo; q.max=hi; }
+      }
+    } else if(opts){
+      warnings.push({row:rowNo,message:'Options are ignored for a '+(type||'this')+' question.'});
+    }
+
+    var rawReq=cell('required'), req=rawReq.toLowerCase();
+    if(req==='' || ['n','no','false','0','optional'].indexOf(req)>=0) q.required=false;
+    else if(['y','yes','true','1','required'].indexOf(req)>=0) q.required=true;
+    else { errors.push({row:rowNo,message:'Required must be Y or N, not "'+rawReq+'".'}); bad=true; }
+
+    var img=cell('image');
+    if(img) q.imageFilename=img;
+
+    if(isSection(type)){
+      q.required=false;
+      delete q.options; delete q.min; delete q.max; delete q.imageFilename;
+      if(cell('required') && ['n','no','false','0',''].indexOf(req)<0)
+        warnings.push({row:rowNo,message:'Required is ignored for a section heading.'});
+    }
+
+    var cq=cell('condq');
+    if(cq){
+      var rawOp=cell('condop'), opKey=rawOp.toLowerCase().replace(/[^a-z_]/g,'');
+      var op=COND_WORDS[opKey];
+      if(op===undefined){
+        errors.push({row:rowNo,message:'Show If Condition "'+rawOp+'" is not understood. Use: is one of, is not one of, or answered.'});
+        bad=true; op='any';
+      }
+      if(!/^\d+$/.test(cq)){
+        errors.push({row:rowNo,message:'Show If Question must be the Order number of an earlier question, not "'+cq+'".'});
+        bad=true;
+      } else {
+        q._cond={order:parseInt(cq,10), op:op,
+          values:cell('condvals').split(';').map(function(x){ return x.trim(); }).filter(function(x){ return x!==''; }),
+          row:rowNo};
+      }
+    } else if(cell('condop')||cell('condvals')){
+      warnings.push({row:rowNo,message:'A Show If condition needs the Order number of the question it depends on — ignored.'});
+    }
+    q._origOrder=order;
+
+    if(!bad) questions.push(q);
+  }
+  if(!errors.length && !questions.length) errors.push({row:0,message:'No question rows found under the header.'});
+  questions.sort(function(a,b){ return a.order-b.order; });
+  questions.forEach(function(q,i){ q.order=i; });
+
+  /* second pass: resolve Show If references, now that every row has an identity */
+  var byOrderNum={};
+  questions.forEach(function(q){ if(byOrderNum[q._origOrder]===undefined) byOrderNum[q._origOrder]=q; });
+  questions.forEach(function(q,i){
+    var c=q._cond;
+    delete q._cond; delete q._origOrder;
+    if(!c) return;
+    var parent=byOrderNum[c.order];
+    if(!parent){ errors.push({row:c.row,message:'Show If Question '+c.order+' does not match any row.'}); return; }
+    if(parent.id===q.id){ errors.push({row:c.row,message:'A question cannot depend on itself.'}); return; }
+    if(questions.indexOf(parent)>=i){
+      errors.push({row:c.row,message:'Show If Question '+c.order+' comes after this row. A condition may only point at an earlier question.'}); return;
+    }
+    if(isSection(parent.type)){
+      errors.push({row:c.row,message:'Show If Question '+c.order+' is a section heading, which collects no answer.'}); return;
+    }
+    if(c.op!=='answered'){
+      if(!c.values.length){
+        errors.push({row:c.row,message:'Show If Values is empty — list the answers that reveal this row, separated by semicolons.'}); return;
+      }
+      if(isChoice(parent.type)){
+        var bad2=c.values.filter(function(v){ return (parent.options||[]).map(String).indexOf(String(v))<0; });
+        if(bad2.length){
+          errors.push({row:c.row,message:'Show If Values '+bad2.map(function(v){return '"'+v+'"';}).join(', ')+' are not options of question '+c.order+' ('+(parent.options||[]).join('; ')+').'}); return;
+        }
+      } else if(parent.type==='linear_scale'){
+        var out=c.values.filter(function(v){ return !/^-?\d+$/.test(v) || Number(v)<parent.min || Number(v)>parent.max; });
+        if(out.length){
+          errors.push({row:c.row,message:'Show If Values must be numbers between '+parent.min+' and '+parent.max+' for question '+c.order+'.'}); return;
+        }
+      }
+    }
+    q.showIf={q:parent.id, op:c.op, values:c.op==='answered'?[]:c.values};
+  });
+  return {errors:errors, warnings:warnings, questions:questions};
+}
+
+function templateAoa(){
+  return [
+    IMPORT_HEADERS,
+    [1,'section','Household identification','','','','','',''],
+    [2,'short_text','Name of respondent','','Y','','','',''],
+    [3,'number','Age in completed years','','Y','','','',''],
+    [4,'multiple_choice','Sex of respondent','Male;Female;Other','Y','','','',''],
+    [5,'section','Illness in the last two weeks','','','','','',''],
+    [6,'multiple_choice','Did any child under five have diarrhoea?','Yes;No;Do not know','Y','','','',''],
+    [7,'number','How many days did it last?','','Y','',6,'is one of','Yes'],
+    [8,'multiple_choice','Was treatment sought?','Yes;No','Y','',6,'is one of','Yes'],
+    [9,'short_text','Why was treatment not sought?','','N','',8,'is one of','No'],
+    [10,'section','Service satisfaction','','','',6,'is one of','Yes'],
+    [11,'linear_scale','How satisfied were you with the service?','1;5','N','','','',''],
+    [12,'long_text','What would you improve?','','N','',11,'is one of','1;2'],
+    [13,'section','Closing','','','','','',''],
+    [14,'checkbox','Which symptoms occurred?','Fever;Cough;None','N','','','',''],
+    [15,'date','Date of last visit','','N','','','',''],
+    [16,'image_upload','Photo of the vaccination card','','N','','','',''],
+    [17,'multiple_choice','Which of these cards was shown?','Card A;Card B','N','q17_cards.png','','','']
+  ];
+}
+function downloadTemplate(){
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet(templateAoa());
+  ws['!cols']=[{wch:7},{wch:17},{wch:44},{wch:44},{wch:10},{wch:20},{wch:17},{wch:17},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws,'Questions');
+  var help=[['Question Type','What it produces','Options column']].concat(TYPES.map(function(t){
+    var o = isChoice(t[0]) ? 'Required — separate with semicolons'
+          : (t[0]==='linear_scale' ? 'Required — minimum;maximum, e.g. 1;5'
+          : (t[0]==='section' ? 'Leave blank — a heading, no answer, no export column' : 'Leave blank'));
+    return [t[0], t[1], o];
+  })).concat([
+    [],
+    ['Show If Question','The Order number of an EARLIER row this one depends on','Blank = always shown'],
+    ['Show If Condition','is one of / is not one of / answered','Blank means: is one of'],
+    ['Show If Values','Answers that reveal this row, separated by semicolons','Must be real options of that earlier question'],
+    [],
+    ['A condition on a section row','Hides the whole section: every row under it, up to the next section',''],
+    ['Hidden answers','Never saved, never exported, never sent to the sheet','']
+  ]);
+  var ws2=XLSX.utils.aoa_to_sheet(help);
+  ws2['!cols']=[{wch:22},{wch:58},{wch:46}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Valid types');
+  XLSX.writeFile(wb,'surveyscholar-template.xlsx');
+}
+function readWorkbookRows(file){
+  return new Promise(function(res,rej){
+    var fr=new FileReader();
+    fr.onerror=function(){ rej(new Error('That file could not be read.')); };
+    fr.onload=function(){
+      try{
+        var wb=XLSX.read(new Uint8Array(fr.result),{type:'array'});
+        var first=wb.SheetNames[0];
+        if(!first) throw new Error('The workbook has no sheets.');
+        res(XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1, raw:false, defval:''}));
+      }catch(e){ rej(new Error('That is not a readable .xlsx or .csv file.')); }
+    };
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+/* ---- document import (heuristic, always reviewed by a human) ---- */
+function loadScript(src){
+  return new Promise(function(res,rej){
+    if(document.querySelector('script[data-src="'+src+'"]')){
+      var wait=setInterval(function(){ if(window.__loaded_[src]){ clearInterval(wait); res(); } },60);
+      setTimeout(function(){ clearInterval(wait); res(); },12000);
+      return;
+    }
+    var s=document.createElement('script');
+    s.src=src; s.setAttribute('data-src',src); s.crossOrigin='anonymous';
+    s.onload=function(){ window.__loaded_[src]=1; res(); };
+    s.onerror=function(){ rej(new Error('Could not load the reader for that file type — you need to be online the first time.')); };
+    document.head.appendChild(s);
+  });
+}
+window.__loaded_={};
+var MAMMOTH_URL='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.7.2/mammoth.browser.min.js';
+var PDFJS_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+var PDFJS_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+function fileBuffer(file){
+  return new Promise(function(res,rej){
+    var fr=new FileReader();
+    fr.onerror=function(){ rej(new Error('That file could not be read.')); };
+    fr.onload=function(){ res(fr.result); };
+    fr.readAsArrayBuffer(file);
+  });
+}
+function extractDocx(file){
+  return loadScript(MAMMOTH_URL).then(function(){ return fileBuffer(file); }).then(function(buf){
+    return window.mammoth.extractRawText({arrayBuffer:buf}).then(function(r){ return r.value||''; });
+  });
+}
+function extractPdf(file){
+  return loadScript(PDFJS_URL).then(function(){ return fileBuffer(file); }).then(function(buf){
+    var lib=window.pdfjsLib;
+    lib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;
+    return lib.getDocument({data:buf}).promise.then(function(doc){
+      var pages=[];
+      for(var i=1;i<=doc.numPages;i++) pages.push(i);
+      return pages.reduce(function(p,n){
+        return p.then(function(acc){
+          return doc.getPage(n).then(function(pg){ return pg.getTextContent(); }).then(function(tc){
+            var lastY=null, line='', out=[];
+            tc.items.forEach(function(it){
+              var y=it.transform[5];
+              if(lastY!==null && Math.abs(y-lastY)>3){ out.push(line); line=''; }
+              line+=it.str;
+              lastY=y;
+            });
+            out.push(line);
+            return acc+out.join('\n')+'\n';
+          });
+        });
+      }, Promise.resolve(''));
+    });
+  });
+}
+
+/* Pure: raw text -> draft questions, each flagged when the guess is not confident. */
+function parseDocumentText(text){
+  var lines=String(text===undefined||text===null?'':text).split(/\r?\n/);
+  var qs=[], cur=null;
+  var Q=/^\s*(?:Q\s*)?(\d+)\s*[\.\)\:]\s*(.+)$/i;
+  var OPT=/^\s*(?:\(?([a-zA-Z])[\.\)]|[ivx]+\)|[\u25A1\u2610\u25CB\u25EF]|\[\s*\])\s*(.+)$/;
+  var BUL=/^\s*[\u2022\u00B7\*\-\u2013]\s+(.+)$/;
+  var HEAD=/^\s*(?:(?:section|part|module|block)\s*[-:.]?\s*[A-Z0-9]*\s*[-:.]?\s*)(.*)$/i;
+  function push(){ if(cur && String(cur.label).trim()) qs.push(cur); cur=null; }
+  function isHeading(line){
+    if(HEAD.test(line)) return true;
+    // a short ALL-CAPS line with no question mark reads as a heading
+    return line.length<=60 && !/[?_]/.test(line) && /[A-Z]/.test(line)
+      && line===line.toUpperCase() && /^[A-Z0-9 ,&'\-:().]+$/.test(line) && line.split(' ').length<=8;
+  }
+  lines.forEach(function(raw){
+    var line=String(raw).trim();
+    if(!line) return;
+    if(!/^\s*(?:Q\s*)?\d+\s*[\.\)\:]/.test(line) && isHeading(line)){
+      push();
+      var hm=line.match(HEAD);
+      qs.push({id:uid(), type:'section', label:((hm&&hm[1]&&hm[1].trim())||line).replace(/[:.]+$/,'').trim()||line, _section:true});
+      return;
+    }
+    var m=line.match(Q);
+    if(m){ push(); cur={id:uid(), label:m[2].trim(), options:[]}; return; }
+    if(cur){
+      var o=line.match(OPT);
+      if(o && o[2] && o[2].trim().length<=120){ cur.options.push(o[2].trim()); return; }
+      var b=line.match(BUL);
+      if(b && b[1].trim().length<=120){ cur.options.push(b[1].trim()); return; }
+      if(cur.options.length===0 && cur.label.length<200){ cur.label+=' '+line; return; }
+      return;
+    }
+    var b2=line.match(BUL);
+    if(b2){ push(); cur={id:uid(), label:b2[1].trim(), options:[]}; return; }
+    if(/[?:]\s*$/.test(line)||/_{3,}/.test(line)){ push(); cur={id:uid(), label:line, options:[]}; }
+  });
+  push();
+
+  /* "If yes, ..." style sub-questions attach to the nearest earlier choice question */
+  qs.forEach(function(q,i){
+    if(q._section) return;
+    var m=String(q.label).match(/^\s*\(?\s*if\s+(?:the\s+)?(?:answer\s+(?:is|was)\s+)?["']?([A-Za-z][A-Za-z \-]{0,24}?)["']?\s*[,:\)]\s*(.+)$/i);
+    if(!m) return;
+    var want=m[1].trim(), rest=m[2].trim();
+    for(var j=i-1;j>=0;j--){
+      var prev=qs[j];
+      if(prev._section) continue;
+      if(!isChoiceGuess(prev)) continue;
+      var opt=(prev.options||[]).filter(function(o){ return String(o).toLowerCase()===want.toLowerCase(); })[0];
+      if(opt){ q._condFrom={id:prev.id, value:opt}; q.label=rest; }
+      break;
+    }
+  });
+  qs.forEach(function(q,i){
+    if(q._section){ q.order=i; q.required=false; delete q.options; return; }
+    var L=q.label.toLowerCase(), uncertain=false;
+    var scale=L.match(/(?:scale\s*(?:of|from)?\s*|rate[^0-9]{0,12}|\()(-?\d+)\s*(?:to|through|-|\u2013)\s*(-?\d+)\)?/);
+    if(/select all that apply|check all|tick all|multiple answers|more than one/.test(L)) q.type='checkbox';
+    else if(/select one|choose one|tick one|single answer|only one/.test(L)) q.type='multiple_choice';
+    else if(scale && Math.abs(+scale[2]-+scale[1])<=20 && +scale[2]>+scale[1]){
+      q.type='linear_scale'; q.min=+scale[1]; q.max=+scale[2];
+    }
+    else if(/date of|what date|dd\/mm|day\/month|when did|when was/.test(L)) q.type='date';
+    else if(/how many|number of|how old|\bage\b|quantity|amount|how much/.test(L)) q.type='number';
+    else if(/photo|picture|image of|upload/.test(L)) q.type='image_upload';
+    else if(q.options.length>=2){ q.type='multiple_choice'; uncertain=true; }
+    else if(/describe|explain|comment|elaborate|in your own words|why do/.test(L)) q.type='long_text';
+    else if(/_{3,}/.test(q.label)) q.type='short_text';
+    else { q.type='short_text'; uncertain=true; }
+
+    if(isChoice(q.type) && q.options.length<1){ q.type='short_text'; uncertain=true; }
+    q.required=!/optional|if any|if applicable/.test(L);
+    q.label=q.label
+      .replace(/\((?:please\s*)?(?:select|tick|choose)[^)]*\)/ig,'')
+      .replace(/_{3,}/g,' ')
+      .replace(/\s{2,}/g,' ').trim();
+    if(!q.label) { q.label='Untitled question'; uncertain=true; }
+    if(!isChoice(q.type)) delete q.options;
+    q.order=i;
+    if(q._condFrom){ q.showIf={q:q._condFrom.id, op:'any', values:[String(q._condFrom.value)]}; delete q._condFrom; }
+    q._uncertain=uncertain;
+  });
+  var fixed=sanitizeConditions(qs.map(function(q){ var c=Object.assign({},q); delete c._section; return c; }));
+  return {questions:fixed.questions,
+          uncertain:fixed.questions.filter(function(q){ return q._uncertain; }).length,
+          sections:fixed.questions.filter(function(q){ return isSection(q.type); }).length,
+          conditional:fixed.questions.filter(function(q){ return q.showIf&&q.showIf.q; }).length};
+}
+function applyImages(questions, images){
+  return questions.map(function(q){
+    var c=Object.assign({},q);
+    var k=c.imageFilename?String(c.imageFilename).trim().toLowerCase():'';
+    if(k && images[k]) c.imageUrl=images[k];
+    return c;
+  });
+}
+
+function isChoiceGuess(q){ return (q.options||[]).length>=1; }
+function stripDraftFlags(questions){
+  return questions.map(function(q){
+    var c=Object.assign({},q);
+    delete c._uncertain; delete c.imageFilename;
+    return c;
+  });
+}
+function uniqueTitle(base, existing){
+  var names={}; (existing||[]).forEach(function(q){ names[String(q.title||'').trim().toLowerCase()]=1; });
+  var t=String(base||'Imported questionnaire').trim()||'Imported questionnaire';
+  if(!names[t.toLowerCase()]) return t;
+  var n=2;
+  while(names[(t+' ('+n+')').toLowerCase()]) n++;
+  return t+' ('+n+')';
+}
+
+/* ============================ image helper ============================ */
+function readImage(file, max, quality){
+  max=max||1280; quality=quality||0.72;
+  return new Promise(function(res,rej){
+    var fr=new FileReader();
+    fr.onerror=function(){ rej(new Error('Could not read that file')); };
+    fr.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ rej(new Error('That file is not an image')); };
+      img.onload=function(){
+        var w=img.width,h=img.height,sc=Math.min(1,max/Math.max(w,h));
+        var c=document.createElement('canvas'); c.width=Math.round(w*sc); c.height=Math.round(h*sc);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL('image/jpeg',quality));
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ============================ tiny UI kit ============================ */
+var UI={ toast:function(){}, confirm:function(){ return Promise.resolve(false); } };
+
+function Icon(p){
+  var d={
+    plus:'M12 5v14M5 12h14',
+    back:'M15 5l-7 7 7 7',
+    close:'M6 6l12 12M18 6L6 18',
+    edit:'M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z',
+    trash:'M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13',
+    up:'M12 19V5M5 12l7-7 7 7',
+    down:'M12 5v14M19 12l-7 7-7-7',
+    copy:'M9 9h10v10H9zM5 15V5h10',
+    input:'M4 6h16M4 12h10M4 18h7',
+    chart:'M5 20V10M12 20V4M19 20v-7',
+    form:'M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-3-2V6a2 2 0 0 1 2-2zM9 9h6M9 13h6',
+    gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.6 14H4a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 5.7 7.5l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 4.6V4a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1.1z',
+    sync:'M20 11a8 8 0 1 0-1.6 5M20 5v6h-6',
+    file:'M7 3h7l5 5v13H7zM14 3v5h5',
+    image:'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4',
+    check:'M5 13l4 4L19 7',
+    search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+    sun:'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+    moon:'M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z'
+  }[p.n]||'';
+  return html`<svg viewBox="0 0 24 24" aria-hidden="true"><path d=${d}/></svg>`;
+}
+function Badge(p){
+  var s=p.status||'local';
+  var txt=s==='synced'?'Synced':(s==='failed'?'Sync failed':'On device');
+  return html`<span className=${'badge '+s}><i className="dot"></i>${txt}</span>`;
+}
+function Sheet(p){
+  useEffect(function(){
+    var prev=document.body.style.overflow; document.body.style.overflow='hidden';
+    return function(){ document.body.style.overflow=prev; };
+  },[]);
+  return html`<div className="sheet" role="dialog" aria-modal="true">
+    <div className="sheet-head"><div className="sheet-head-in">
+      <button className="iconbtn" onClick=${p.onClose} aria-label="Go back"><${Icon} n="back"/><//>
+      <h2>${p.title}</h2>
+      ${p.headRight||null}
+    </div></div>
+    <div className="sheet-body"><div className="wrap">${p.children}</div></div>
+    ${p.foot ? html`<div className="sheet-foot"><div className="sheet-foot-in">${p.foot}</div></div>` : null}
+  </div>`;
+}
+function Confirm(p){
+  var o=p.opts;
+  var st=useState('') , typed=st[0], setTyped=st[1];
+  var needType=!!o.typeToConfirm;
+  var okDisabled=needType && typed.trim()!==o.typeToConfirm;
+  return html`<div className="scrim" onClick=${function(e){ if(e.target===e.currentTarget) p.onDone(false); }}>
+    <div className="dialog">
+      <h2>${o.title}</h2>
+      <p className="muted" style=${{marginTop:'8px',whiteSpace:'pre-wrap'}}>${o.message}</p>
+      ${needType ? html`<div style=${{marginTop:'14px'}}>
+        <span className="lbl small">Type <b>${o.typeToConfirm}</b> to confirm</span>
+        <input type="text" value=${typed} autoFocus onChange=${function(e){setTyped(e.target.value);}}/>
+      </div>` : null}
+      <div className="row" style=${{marginTop:'18px',justifyContent:'flex-end'}}>
+        <button className="btn" onClick=${function(){p.onDone(false);}}>${o.cancelText||'Cancel'}</button>
+        <button className=${'btn '+(o.danger?'btn-danger':'btn-primary')} disabled=${okDisabled}
+          onClick=${function(){p.onDone(true);}}>${o.okText||'Confirm'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function confirmDeleteEntry(entry){
+  return UI.confirm({
+    title:'Delete entry '+entry.entryId+'?',
+    message:'Collected '+fmtDT(entry.createdAt)+'.\n\nIt leaves your lists, counts and exports straight away, and is marked deleted in the sheet. You can restore it from Recently deleted for 30 days.',
+    danger:true, okText:'Delete entry'
+  }).then(function(yes){
+    if(!yes) return false;
+    return UI.confirm({
+      title:'One more tap to confirm',
+      message:'Delete '+entry.entryId+'. The entry ID is never reused, so the sequence stays intact.',
+      danger:true, okText:'Yes, delete'
+    });
+  }).then(function(yes){
+    if(!yes) return false;
+    return softDelete(entry.entryId).then(function(){
+      UI.toast('Entry '+entry.entryId+' deleted');
+      return true;
+    },function(e){ UI.toast('Could not delete: '+(e.message||e)); return false; });
+  });
+}
+function confirmRestoreEntry(entry){
+  return UI.confirm({title:'Restore '+entry.entryId+'?',
+    message:'It returns to your lists and counts, and is re-sent to the sheet on the next sync.', okText:'Restore'})
+    .then(function(yes){
+      if(!yes) return false;
+      return restoreEntry(entry.entryId).then(function(){ UI.toast('Entry '+entry.entryId+' restored'); return true; });
+    });
+}
+
+/* ============================ field rendering ============================ */
+function Field(p){
+  var q=p.q, v=p.value, set=p.onChange, err=p.error;
+  var body;
+  if(isSection(q.type)) return html`<div className=${'sect'+(p.conditional?' cond':'')}>
+    ${p.note?html`<span className="cond-note">${p.note}</span>`:null}
+    <h2>${q.label||'Untitled section'}</h2>
+    <div className="rule"></div>
+    ${q.description?html`<p className="small muted">${q.description}</p>`:null}
+  </div>`;
+  if(q.type==='short_text') body=html`<input type="text" value=${v||''} onChange=${function(e){set(e.target.value);}}/>`;
+  else if(q.type==='long_text') body=html`<textarea value=${v||''} onChange=${function(e){set(e.target.value);}}></textarea>`;
+  else if(q.type==='number') body=html`<input type="number" inputMode="decimal" value=${v===undefined||v===null?'':v}
+      min=${q.min} max=${q.max} onChange=${function(e){set(e.target.value===''?'':Number(e.target.value));}}/>`;
+  else if(q.type==='date') body=html`<input type="date" value=${v||''} onChange=${function(e){set(e.target.value);}}/>`;
+  else if(q.type==='dropdown') body=html`<select value=${v||''} onChange=${function(e){set(e.target.value);}}>
+      <option value="">Choose…</option>
+      ${(q.options||[]).map(function(o,i){ return html`<option key=${i} value=${o}>${o}</option>`; })}
+    </select>`;
+  else if(q.type==='multiple_choice') body=html`<div className="opts">
+      ${(q.options||[]).map(function(o,i){ return html`<label key=${i} className=${'opt'+(v===o?' on':'')}>
+        <input type="radio" name=${'q'+q.id} checked=${v===o} onChange=${function(){set(o);}}/><span>${o}</span></label>`; })}
+      ${v && !q.required ? html`<button className="btn-ghost btn" onClick=${function(){set(undefined);}}>Clear answer</button>` : null}
+    </div>`;
+  else if(q.type==='checkbox'){
+    var arr=Array.isArray(v)?v:[];
+    body=html`<div className="opts">
+      ${(q.options||[]).map(function(o,i){
+        var on=arr.indexOf(o)>=0;
+        return html`<label key=${i} className=${'opt'+(on?' on':'')}>
+          <input type="checkbox" checked=${on} onChange=${function(){
+            set(on?arr.filter(function(x){return x!==o;}):arr.concat([o]));
+          }}/><span>${o}</span></label>`;
+      })}
+    </div>`;
+  }
+  else if(q.type==='linear_scale'){
+    var lo=(q.min===undefined||q.min===null)?1:Number(q.min), hi=(q.max===undefined||q.max===null)?5:Number(q.max);
+    var items=[]; for(var i=lo;i<=hi && items.length<21;i++) items.push(i);
+    body=html`<div>
+      <div className="scale">${items.map(function(n){
+        return html`<button key=${n} type="button" className=${v===n?'on':''} onClick=${function(){set(v===n?undefined:n);}}>${n}</button>`;
+      })}</div>
+      ${(q.minLabel||q.maxLabel)?html`<div className="row-between tiny muted" style=${{marginTop:'6px'}}>
+        <span>${q.minLabel||''}</span><span>${q.maxLabel||''}</span></div>`:null}
+    </div>`;
+  }
+  else if(q.type==='image_upload'){
+    body=html`<div className="stack-sm">
+      ${v?html`<img className="thumb" src=${v} alt="Answer photo"/>`:null}
+      <div className="row">
+        <label className="btn btn-sm" style=${{flex:1}}>
+          ${v?'Replace photo':'Take or choose photo'}
+          <input type="file" accept="image/*" capture="environment" style=${{display:'none'}}
+            onChange=${function(e){ var f=e.target.files&&e.target.files[0]; if(!f) return;
+              readImage(f).then(set,function(err){ UI.toast(err.message); }); e.target.value=''; }}/>
+        </label>
+        ${v?html`<button className="btn btn-sm btn-danger" onClick=${function(){set(undefined);}}>Remove</button>`:null}
+      </div>
+    </div>`;
+  }
+  else body=html`<input type="text" value=${v||''} onChange=${function(e){set(e.target.value);}}/>`;
+
+  return html`<div className=${'card'+(err?' invalid':'')+(p.conditional?' cond':'')} id=${'f-'+q.id}>
+    ${p.note?html`<span className="cond-note">${p.note}</span>`:null}
+    ${q.imageUrl?html`<img className="qimg" src=${q.imageUrl} alt=""/>`:null}
+    <span className="lbl">${q.label||'Untitled question'}${q.required?html`<span className="req">*</span>`:null}</span>
+    ${q.help?html`<p className="small muted" style=${{margin:'-3px 0 8px'}}>${q.help}</p>`:null}
+    ${body}
+    ${err?html`<p className="err">${err}</p>`:null}
+  </div>`;
+}
+
+function validate(questions, answers){
+  var errs={};
+  visibleQuestions(questions,answers).forEach(function(q){
+    if(!q.required) return;
+    var v=answers[q.id];
+    var empty = v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0);
+    if(empty) errs[q.id]='This answer is required.';
+  });
+  return errs;
+}
+function isDraftDirty(answers){
+  if(!answers) return false;
+  return Object.keys(answers).some(function(k){
+    var v=answers[k];
+    return !(v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0));
+  });
+}
+
+/* ============================ Entry form (full screen) ============================ */
+function EntryForm(p){
+  // p: questionnaire, entry (or null for new), interviewer, onClose, onSaved
+  var s1=useState(null), questions=s1[0], setQuestions=s1[1];
+  var s2=useState({}), answers=s2[0], setAnswers=s2[1];
+  var s3=useState({}), errors=s3[0], setErrors=s3[1];
+  var s4=useState(false), saving=s4[0], setSaving=s4[1];
+  var s5=useState(false), recovered=s5[0], setRecovered=s5[1];
+  var s6=useState(true), loading=s6[0], setLoading=s6[1];
+  var draftId = p.entry ? 'entry:'+p.entry.entryId : 'new:'+p.questionnaire.id;
+  var timer=useRef(null), mounted=useRef(false);
+
+  useEffect(function(){
+    var qsP = p.entry
+      ? getSnapshot(p.entry.questionnaireId, p.entry.questionnaireVersion).then(function(sn){
+          return (sn&&sn.questions&&sn.questions.length)?sn.questions:(p.questionnaire.questions||[]);
+        })
+      : Promise.resolve(p.questionnaire.questions||[]);
+    Promise.all([qsP, dbGet('drafts',draftId)]).then(function(r){
+      var qs=r[0].slice().sort(function(a,b){return (a.order||0)-(b.order||0);});
+      var draft=r[1];
+      setQuestions(qs);
+      if(draft && draft.answers && isDraftDirty(draft.answers)){ setAnswers(draft.answers); setRecovered(true); }
+      else setAnswers(p.entry?clone(p.entry.answers||{}):{});
+      setLoading(false);
+      setTimeout(function(){ mounted.current=true; },0);
+    });
+  },[]);
+
+  // debounced draft autosave (500ms) on every change
+  useEffect(function(){
+    if(!mounted.current) return;
+    if(timer.current) clearTimeout(timer.current);
+    timer.current=setTimeout(function(){
+      dbPut('drafts',{id:draftId, questionnaireId:p.questionnaire.id, entryId:p.entry?p.entry.entryId:null,
+                      answers:answers, updatedAt:nowISO()});
+    },500);
+    return function(){ if(timer.current) clearTimeout(timer.current); };
+  },[answers]);
+
+  function setAns(qid,val){
+    setAnswers(function(prev){
+      var n=Object.assign({},prev);
+      if(val===undefined) delete n[qid]; else n[qid]=val;
+      return n;
+    });
+    setErrors(function(prev){ if(!prev[qid]) return prev; var n=Object.assign({},prev); delete n[qid]; return n; });
+  }
+  function discardDraft(){
+    UI.confirm({title:'Discard recovered draft?',message:'The answers recovered from your last session will be cleared.',danger:true,okText:'Discard'})
+      .then(function(yes){ if(!yes) return;
+        setAnswers(p.entry?clone(p.entry.answers||{}):{}); setRecovered(false); });
+  }
+  function close(){
+    if(!p.entry && isDraftDirty(answers)){
+      UI.confirm({title:'Leave this entry?',message:'Your answers are saved as a draft and will be waiting here when you come back.',okText:'Leave'})
+        .then(function(yes){ if(yes) p.onClose(); });
+    } else p.onClose();
+  }
+  function submit(){
+    var errs=validate(questions,answers);
+    setErrors(errs);
+    var keys=Object.keys(errs);
+    if(keys.length){
+      UI.toast(keys.length+' required '+(keys.length===1?'answer is':'answers are')+' missing');
+      var el=document.getElementById('f-'+keys[0]);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    setSaving(true);
+    var t=nowISO();
+    var kept=clone(pruneHiddenAnswers(questions,answers));
+    var work;
+    if(p.entry){
+      work=updateResponse(p.entry.entryId,{answers:kept, updatedAt:t, syncStatus:'local', syncError:null})
+        .then(function(){ return p.entry.entryId; });
+    }else{
+      work=createResponse({
+        questionnaireId:p.questionnaire.id, questionnaireVersion:p.questionnaire.version||1,
+        answers:kept, createdAt:t, updatedAt:t, syncStatus:'local', syncedAt:null,
+        interviewer:p.interviewer||''
+      });
+    }
+    work.then(function(entryId){
+      return dbDel('drafts',draftId).then(function(){ return entryId; });
+    }).then(function(entryId){
+      UI.toast((p.entry?'Entry updated · ':'Entry saved · ')+entryId);
+      p.onSaved(entryId);
+      setSaving(false);
+    }).catch(function(e){
+      setSaving(false);
+      UI.confirm({title:'Not saved',message:'Nothing was written. '+(e.message||e),okText:'OK',cancelText:'Close'});
+    });
+  }
+
+  var shown = questions?visibleElements(questions,answers):[];
+  var hiddenCount = questions?(answerable(questions).length-answerable(shown).length):0;
+  var oldVersion = p.entry && p.entry.questionnaireVersion !== p.questionnaire.version;
+  return html`<${Sheet} title=${p.entry?('Edit '+p.entry.entryId):'New entry'} onClose=${close}
+    foot=${html`<${React.Fragment}>
+      <button className="btn" style=${{flex:'0 0 auto'}} onClick=${close}>Cancel</button>
+      <button className="btn btn-primary btn-block" disabled=${saving||loading} onClick=${submit}>
+        ${saving?'Saving…':(p.entry?'Save changes':'Save entry')}</button>
+    <//>`}>
+    ${loading ? html`<p className="muted" style=${{padding:'20px 0'}}>Loading form…</p>` : html`<${React.Fragment}>
+      <div className="stack" style=${{paddingTop:'14px'}}>
+        ${recovered?html`<div className="banner warn row-between">
+          <span>Draft recovered from your last session.</span>
+          <button className="btn btn-sm" onClick=${discardDraft}>Discard</button>
+        </div>`:null}
+        ${oldVersion?html`<div className="banner info">This entry was collected on form version ${p.entry.questionnaireVersion}. It is shown with the questions as they were then, so the answers stay readable.</div>`:null}
+        ${questions.length===0?html`<div className="empty">This questionnaire has no questions yet. Add some in the Questionnaire tab.</div>`:null}
+        ${shown.map(function(q){
+          return html`<${Field} key=${q.id} q=${q} value=${answers[q.id]} error=${errors[q.id]}
+            conditional=${!!(q.showIf&&q.showIf.q)} onChange=${function(v){ setAns(q.id,v); }}/>`;
+        })}
+        ${hiddenCount>0?html`<p className="tiny muted">${hiddenCount} further ${hiddenCount===1?'question depends':'questions depend'} on answers above and will appear when they apply.</p>`:null}
+        ${p.entry?html`<${React.Fragment}>
+          <p className="tiny muted">Entry ${p.entry.entryId} · created ${fmtDT(p.entry.createdAt)} · saving keeps the same ID.</p>
+          <button className="btn btn-danger btn-block" onClick=${function(){
+            confirmDeleteEntry(p.entry).then(function(done){ if(done) p.onDeleted(); });
+          }}>Delete this entry</button>
+        <//>`:null}
+      </div>
+    <//>`}
+  <//>`;
+}
+
+/* ============================ All entries (full screen) ============================ */
+function AllEntries(p){
+  var s1=useState(''), q=s1[0], setQ=s1[1];
+  var s2=useState('all'), filt=s2[0], setFilt=s2[1];
+  var s3=useState(30), limit=s3[0], setLimit=s3[1];
+  var deletedList=useMemo(function(){
+    return p.responses.filter(function(r){ return r.isDeleted; });
+  },[p.responses]);
+  var list=useMemo(function(){
+    var t=q.trim().toLowerCase();
+    var base = filt==='deleted' ? deletedList : liveOnly(p.responses);
+    return base.filter(function(r){
+      if(filt!=='all' && filt!=='deleted' && r.syncStatus!==filt) return false;
+      if(!t) return true;
+      if(r.entryId.indexOf(t)>=0) return true;
+      if(fmtDT(r.createdAt).toLowerCase().indexOf(t)>=0) return true;
+      return Object.keys(r.answers||{}).some(function(k){
+        var v=r.answers[k];
+        if(Array.isArray(v)) v=v.join(' ');
+        return typeof v==='string' && v.toLowerCase().indexOf(t)>=0;
+      });
+    }).sort(function(a,b){ return a.createdAt<b.createdAt?1:-1; });
+  },[p.responses,q,filt,deletedList]);
+  var liveCount=liveOnly(p.responses).length;
+  return html`<${Sheet} title=${'All entries · '+p.questionnaire.title} onClose=${p.onClose}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <input type="text" placeholder="Search by ID, date or answer" value=${q}
+        onChange=${function(e){ setQ(e.target.value); setLimit(30); }}/>
+      <div className="chips">
+        ${[['all','All'],['local','On device'],['synced','Synced'],['failed','Sync failed'],
+           ['deleted','Recently deleted ('+deletedList.length+')']].map(function(f){
+          return html`<button key=${f[0]} className=${'chip'+(filt===f[0]?' on':'')}
+            onClick=${function(){ setFilt(f[0]); setLimit(30); }}>${f[1]}</button>`;
+        })}
+      </div>
+      ${filt==='deleted'?html`<div className="banner warn">
+        Deleted entries are kept for ${PURGE_DAYS} days, then removed for good once the deletion has reached the sheet. Their entry IDs are never reused.
+      </div>`:null}
+      <p className="small muted num">${list.length} of ${filt==='deleted'?deletedList.length:liveCount} entries</p>
+      <div className="card">
+        ${list.length===0?html`<div className="empty">${filt==='deleted'?'Nothing has been deleted.':'Nothing matches that filter.'}</div>`:
+          list.slice(0,limit).map(function(r){
+            return html`<div className="entry" key=${r.entryId}>
+              <div style=${{minWidth:0}}>
+                <div className="eid mono">${r.entryId}</div>
+                <div className="tiny muted">${fmtDT(r.createdAt)}${r.updatedAt!==r.createdAt&&!r.isDeleted?' · edited':''}
+                  ${r.isDeleted?' · deleted '+fmtDT(r.deletedAt):''}</div>
+                ${r.syncStatus==='failed'&&r.syncError?html`<div className="tiny" style=${{color:'var(--fail)'}}>${r.syncError}</div>`:null}
+              </div>
+              <div className="row">
+                <${Badge} status=${r.syncStatus}/>
+                ${r.isDeleted
+                  ? html`<button className="btn btn-sm" onClick=${function(){
+                      confirmRestoreEntry(r).then(function(done){ if(done) p.refresh(); }); }}>Restore</button>`
+                  : html`<${React.Fragment}>
+                      <button className="btn btn-sm" onClick=${function(){ p.onEdit(r); }}>Edit</button>
+                      <button className="btn btn-sm btn-danger" onClick=${function(){
+                        confirmDeleteEntry(r).then(function(done){ if(done) p.refresh(); }); }}>Delete</button>
+                    <//>`}
+              </div>
+            </div>`;
+          })}
+      </div>
+      ${list.length>limit?html`<button className="btn btn-block" onClick=${function(){setLimit(limit+30);}}>Show 30 more</button>`:null}
+    </div>
+  <//>`;
+}
+
+/* ============================ Input page ============================ */
+function InputPage(p){
+  var s1=useState(null), sheet=s1[0], setSheet=s1[1]; // {mode:'new'|'edit'|'all', entry}
+  var s2=useState(null), draft=s2[0], setDraft=s2[1];
+  var qn=p.active;
+  var recent=useMemo(function(){
+    return p.responses.slice().sort(function(a,b){ return a.createdAt<b.createdAt?1:-1; }).slice(0,10);
+  },[p.responses]);
+
+  useEffect(function(){
+    if(!qn) { setDraft(null); return; }
+    dbGet('drafts','new:'+qn.id).then(function(d){ setDraft(d&&isDraftDirty(d.answers)?d:null); });
+  },[qn&&qn.id, sheet]);
+
+  function switchQuestionnaire(id){
+    if(!id || (qn&&id===qn.id)) return;
+    var go=function(){ p.onSetActive(id); };
+    if(draft){
+      UI.confirm({title:'You have an unsaved draft',
+        message:'An unfinished entry for “'+qn.title+'” is saved on this device. Switching keeps it — you can come back and finish it. Nothing is sent to the sheet until you save the entry.',
+        okText:'Switch form'}).then(function(yes){ if(yes) go(); });
+    } else go();
+  }
+
+  if(!p.questionnaires.length) return html`<div className="wrap">
+    <div className="card" style=${{marginTop:'16px'}}>
+      <h2>Start with a questionnaire</h2>
+      <p className="muted small" style=${{marginTop:'6px'}}>Build your questions first, then come back here to collect answers in the field.</p>
+      <button className="btn btn-primary btn-block" style=${{marginTop:'14px'}}
+        onClick=${function(){ location.hash='#/questionnaire'; }}>Go to Questionnaire</button>
+    </div>
+  </div>`;
+
+  return html`<div className="wrap">
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <div className="card">
+        <span className="lbl">Collecting for</span>
+        <select value=${qn?qn.id:''} onChange=${function(e){ switchQuestionnaire(e.target.value); }}>
+          ${p.questionnaires.map(function(x){ return html`<option key=${x.id} value=${x.id}>${x.title}</option>`; })}
+        </select>
+        ${qn?html`<p className="tiny muted num" style=${{marginTop:'8px'}}>
+          Form version ${qn.version} · ${(qn.questions||[]).length} questions · ${p.responses.length} collected${qn.targetCount?(' of '+qn.targetCount):''}
+        </p>`:null}
+      </div>
+
+      ${draft?html`<div className="banner warn row-between">
+        <span>Unfinished entry saved on this device.</span>
+        <button className="btn btn-sm" onClick=${function(){ setSheet({mode:'new',nonce:uid()}); }}>Continue</button>
+      </div>`:null}
+
+      ${qn && (qn.questions||[]).length===0 ? html`<div className="banner info">
+        This form has no questions yet. Add them in the Questionnaire tab before collecting.
+      </div>`:null}
+
+      <div className="card">
+        <div className="row-between" style=${{marginBottom:'6px'}}>
+          <h2>Recent entries</h2>
+          ${p.allResponses.length>0?html`<button className="btn-ghost btn btn-sm" onClick=${function(){ setSheet({mode:'all'}); }}>
+            Show all (${p.responses.length})</button>`:null}
+        </div>
+        ${recent.length===0?html`<div className="empty">No entries yet. Tap <b>New entry</b> to record your first one.</div>`:
+          recent.map(function(r){
+            return html`<div className="entry" key=${r.entryId}>
+              <div style=${{minWidth:0}}>
+                <div className="eid mono">${r.entryId}</div>
+                <div className="tiny muted">${fmtDT(r.createdAt)}${r.updatedAt!==r.createdAt?' · edited':''}</div>
+              </div>
+              <div className="row">
+                <${Badge} status=${r.syncStatus}/>
+                <button className="btn btn-sm" onClick=${function(){ setSheet({mode:'edit',entry:r}); }}>Edit</button>
+                <button className="btn btn-sm btn-danger" onClick=${function(){
+                  confirmDeleteEntry(r).then(function(done){ if(done) { p.refresh(); p.trySync(); } });
+                }}>Delete</button>
+              </div>
+            </div>`;
+          })}
+      </div>
+    </div>
+
+    ${qn?html`<button className="fab" onClick=${function(){ setSheet({mode:'new',nonce:uid()}); }}>
+      <${Icon} n="plus"/> New entry</button>`:null}
+
+    ${sheet&&sheet.mode==='all'?html`<${AllEntries} questionnaire=${qn} responses=${p.allResponses}
+      onClose=${function(){ setSheet(null); }}
+      refresh=${function(){ p.refresh(); p.trySync(); }}
+      onEdit=${function(r){ setSheet({mode:'edit',entry:r}); }}/>`:null}
+
+    ${sheet&&(sheet.mode==='new'||sheet.mode==='edit')?html`<${EntryForm}
+      key=${sheet.mode+'-'+(sheet.entry?sheet.entry.entryId:sheet.nonce)}
+      questionnaire=${qn} entry=${sheet.mode==='edit'?sheet.entry:null} interviewer=${p.settings.interviewer}
+      onClose=${function(){ setSheet(null); }}
+      onDeleted=${function(){ setSheet(null); p.refresh(); p.trySync(); }}
+      onSaved=${function(){ setSheet(null); p.refresh(); p.trySync(); }}/>`:null}
+  </div>`;
+}
+
+/* ============================ Overview page ============================ */
+function OverviewPage(p){
+  var s1=useState(p.settings.activeQuestionnaireId||'all'), pick=s1[0], setPick=s1[1];
+  var s2=useState(false), busy=s2[0], setBusy=s2[1];
+  var qById={}; p.questionnaires.forEach(function(q){ qById[q.id]=q; });
+  var scoped=useMemo(function(){
+    return pick==='all'?p.allResponses:p.allResponses.filter(function(r){ return r.questionnaireId===pick; });
+  },[p.allResponses,pick]);
+  var rows=useMemo(function(){ return liveOnly(scoped); },[scoped]);
+  var target = pick==='all'
+    ? p.questionnaires.reduce(function(a,q){ return a+(Number(q.targetCount)||0); },0)
+    : (Number((qById[pick]||{}).targetCount)||0);
+  var pct = target>0 ? Math.min(100, Math.round(rows.length/target*100)) : 0;
+  var counts={local:0,synced:0,failed:0};
+  rows.forEach(function(r){ counts[r.syncStatus]=(counts[r.syncStatus]||0)+1; });
+  var pendingDeletes=scoped.filter(function(r){ return r.isDeleted && r.syncStatus!=='synced'; }).length;
+  var today=new Date().toDateString();
+  var todayCount=rows.filter(function(r){ return new Date(r.createdAt).toDateString()===today; }).length;
+
+  function runExport(kind){
+    if(pick==='all'){ UI.toast('Choose one questionnaire to export'); return; }
+    var qn=qById[pick];
+    if(!rows.length){ UI.toast('Nothing to export yet'); return; }
+    setBusy(true);
+    var f = kind==='csv'?exportCsv:exportXlsx;
+    f(qn,rows,p.settings.interviewer).then(function(){ setBusy(false); UI.toast('File downloaded'); },
+      function(e){ setBusy(false); UI.toast('Export failed: '+(e.message||e)); });
+  }
+
+  return html`<div className="wrap"><div className="stack" style=${{paddingTop:'14px'}}>
+    <div className="card">
+      <span className="lbl">Showing</span>
+      <select value=${pick} onChange=${function(e){ setPick(e.target.value); }}>
+        <option value="all">All questionnaires</option>
+        ${p.questionnaires.map(function(x){ return html`<option key=${x.id} value=${x.id}>${x.title}</option>`; })}
+      </select>
+    </div>
+
+    <div className="hero">
+      <div className="big num">${rows.length}</div>
+      <p style=${{marginTop:'4px'}}>responses collected</p>
+      <p className="small muted num" style=${{marginTop:'2px'}}>${todayCount} today</p>
+      ${target>0?html`<${React.Fragment}>
+        <div className="bar"><i style=${{width:pct+'%'}}></i></div>
+        <div className="row-between small num" style=${{marginTop:'8px'}}>
+          <span className="muted">Target ${target}</span>
+          <span style=${{fontWeight:600}}>${pct}% achieved · ${Math.max(0,target-rows.length)} to go</span>
+        </div>
+      <//>`:html`<p className="small muted" style=${{marginTop:'10px'}}>Set a target in the Questionnaire tab to track progress.</p>`}
+    </div>
+
+    <div className="card">
+      <h2>Sync status</h2>
+      <div className="row" style=${{marginTop:'10px',flexWrap:'wrap',gap:'8px'}}>
+        <span className="badge synced"><i className="dot"></i>${counts.synced} synced</span>
+        <span className="badge local"><i className="dot"></i>${counts.local} on device</span>
+        <span className="badge failed"><i className="dot"></i>${counts.failed} failed</span>
+      </div>
+      ${pendingDeletes>0?html`<p className="small muted" style=${{marginTop:'10px'}}>
+        ${pendingDeletes} ${pendingDeletes===1?'deletion has':'deletions have'} not reached the sheet yet — they sync with everything else.</p>`:null}
+      ${(counts.local+counts.failed+pendingDeletes)>0?html`<button className="btn btn-block" style=${{marginTop:'12px'}}
+        onClick=${p.onSyncNow}>Sync now</button>`:null}
+    </div>
+
+    <div className="card">
+      <h2>Export</h2>
+      <p className="small muted" style=${{marginTop:'6px'}}>
+        One row per response, one column per question, plus entry ID, timestamp and sync status.
+        ${pick==='all'?' Pick a single questionnaire to export.':''}
+      </p>
+      <div className="row" style=${{marginTop:'12px'}}>
+        <button className="btn btn-primary" style=${{flex:1}} disabled=${busy||pick==='all'} onClick=${function(){runExport('xlsx');}}>
+          Export to Excel</button>
+        <button className="btn" disabled=${busy||pick==='all'} onClick=${function(){runExport('csv');}}>CSV</button>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+/* ============================ Question editor ============================ */
+function QuestionEditor(p){
+  var s1=useState(clone(p.question)), q=s1[0], setQ=s1[1];
+  var sect=isSection(q.type);
+  var cond=q.showIf||{};
+  var parents=answerable(p.available||[]).filter(function(x){ return x.id!==q.id; });
+  var parent=parents.filter(function(x){ return x.id===cond.q; })[0];
+  var parentChoices=parent?(isChoice(parent.type)?(parent.options||[]):
+    (parent.type==='linear_scale'?(function(){ var a=[],lo=Number(parent.min||1),hi=Number(parent.max||5);
+      for(var i=lo;i<=hi&&a.length<21;i++) a.push(i); return a; })():[])):[];
+  function up(patch){ setQ(function(prev){ return Object.assign({},prev,patch); }); }
+  function setOpt(i,val){ var o=(q.options||[]).slice(); o[i]=val; up({options:o}); }
+  function addOpt(){ up({options:(q.options||[]).concat(['Option '+((q.options||[]).length+1)])}); }
+  function delOpt(i){ var o=(q.options||[]).slice(); o.splice(i,1); up({options:o}); }
+  function moveOpt(i,d){ var o=(q.options||[]).slice(); var j=i+d; if(j<0||j>=o.length) return;
+    var t=o[i]; o[i]=o[j]; o[j]=t; up({options:o}); }
+  function save(){
+    if(!String(q.label||'').trim()){ UI.toast(sect?'Give the section a heading':'Give the question a label'); return; }
+    if(!sect && isChoice(q.type) && (q.options||[]).filter(function(o){return String(o).trim();}).length<1){
+      UI.toast('Add at least one option'); return; }
+    if(q.showIf && q.showIf.q && q.showIf.op!=='answered' && !(q.showIf.values||[]).length){
+      UI.toast('Choose at least one answer that reveals this'); return; }
+    var clean=Object.assign({},q,{label:String(q.label).trim()});
+    if(sect){ delete clean.options; delete clean.min; delete clean.max;
+      delete clean.minLabel; delete clean.maxLabel; delete clean.imageUrl; delete clean.help; clean.required=false; }
+    if(isChoice(clean.type)) clean.options=(clean.options||[]).map(function(o){return String(o).trim();}).filter(Boolean);
+    else delete clean.options;
+    if(clean.type==='linear_scale'){
+      clean.min=Number(clean.min===undefined||clean.min===''?1:clean.min);
+      clean.max=Number(clean.max===undefined||clean.max===''?5:clean.max);
+      if(clean.max<=clean.min) clean.max=clean.min+1;
+    }
+    p.onSave(clean);
+  }
+  return html`<${Sheet} title=${p.isNew?(sect?'New section':'New question'):(sect?'Edit section':'Edit question')} onClose=${p.onClose}
+    foot=${html`<${React.Fragment}>
+      <button className="btn" onClick=${p.onClose}>Cancel</button>
+      <button className="btn btn-primary btn-block" onClick=${save}>${sect?'Save section':'Save question'}</button>
+    <//>`}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <div className="card stack-sm">
+        <label className="field"><span className="lbl">${sect?'Section heading':'Question'}</span>
+          <textarea value=${q.label||''} placeholder=${sect?'Name this part of the form':'What do you want to ask?'}
+            onChange=${function(e){ up({label:e.target.value}); }} style=${{minHeight:'72px'}}></textarea></label>
+        <label className="field"><span className="lbl">${sect?'Description (optional)':'Helper text (optional)'}</span>
+          <input type="text" value=${sect?(q.description||''):(q.help||'')}
+            placeholder=${sect?'Shown under the heading':'Shown under the question'}
+            onChange=${function(e){ up(sect?{description:e.target.value}:{help:e.target.value}); }}/></label>
+        <label className="field"><span className="lbl">Type</span>
+          <select value=${q.type} onChange=${function(e){
+            var t=e.target.value;
+            var patch={type:t};
+            if(isChoice(t) && !(q.options||[]).length) patch.options=['Option 1','Option 2'];
+            if(t==='linear_scale'){ patch.min=q.min===undefined?1:q.min; patch.max=q.max===undefined?5:q.max; }
+            if(isSection(t)) patch.required=false;
+            up(patch);
+          }}>
+            ${TYPES.map(function(t){ return html`<option key=${t[0]} value=${t[0]}>${t[1]}</option>`; })}
+          </select></label>
+        ${sect?html`<p className="tiny muted">A section groups the questions that follow it, up to the next section. It collects no answer and gets no column in the export.</p>`
+          :html`<label className="opt" style=${{marginTop:'4px'}}>
+          <input type="checkbox" checked=${!!q.required} onChange=${function(e){ up({required:e.target.checked}); }}/>
+          <span>Required — the entry can't be saved without it</span></label>`}
+      </div>
+
+      <div className="card">
+        <h3>${sect?'Show this section only if…':'Show this question only if…'}</h3>
+        <p className="small muted" style=${{marginTop:'5px'}}>
+          ${sect?'Hiding a section hides every question under it, up to the next section.':'Leave this as “Always show” to ask it every time.'}</p>
+        ${parents.length===0?html`<p className="small muted" style=${{marginTop:'10px'}}>
+          Nothing to depend on yet — a condition can only point at a question that comes before this one.</p>`
+        :html`<div className="stack-sm" style=${{marginTop:'10px'}}>
+          <select value=${cond.q||''} onChange=${function(e){
+            var id=e.target.value;
+            if(!id) up({showIf:undefined}); else up({showIf:{q:id, op:cond.op||'any', values:[]}});
+          }}>
+            <option value="">Always show</option>
+            ${parents.map(function(x){ return html`<option key=${x.id} value=${x.id}>${x.label||'Untitled'}</option>`; })}
+          </select>
+          ${cond.q?html`<${React.Fragment}>
+            <select value=${cond.op||'any'} onChange=${function(e){
+              up({showIf:Object.assign({},cond,{op:e.target.value, values:e.target.value==='answered'?[]:(cond.values||[])})});
+            }}>
+              ${COND_OPS.map(function(o){ return html`<option key=${o[0]} value=${o[0]}>${o[1]}</option>`; })}
+            </select>
+            ${cond.op!=='answered'?(parentChoices.length?html`<div className="opts">
+              ${parentChoices.map(function(o){
+                var on=(cond.values||[]).map(String).indexOf(String(o))>=0;
+                return html`<label key=${o} className=${'opt'+(on?' on':'')}>
+                  <input type="checkbox" checked=${on} onChange=${function(){
+                    var vals=(cond.values||[]).map(String);
+                    up({showIf:Object.assign({},cond,{values:on?vals.filter(function(x){return x!==String(o);}):vals.concat([String(o)])})});
+                  }}/><span>${o}</span></label>`;
+              })}
+            </div>`:html`<label className="field"><span className="lbl small">Answers that reveal it, separated by semicolons</span>
+              <input type="text" value=${(cond.values||[]).join('; ')} onChange=${function(e){
+                up({showIf:Object.assign({},cond,{values:e.target.value.split(';').map(function(x){return x.trim();}).filter(Boolean)})});
+              }}/></label>`):null}
+            <p className="small">${condSummary(Object.assign({},q,{showIf:cond}), p.available)}</p>
+          <//>`:null}
+        </div>`}
+      </div>
+
+      ${(!sect&&isChoice(q.type))?html`<div className="card">
+        <h3>Options</h3>
+        <div className="stack-sm" style=${{marginTop:'10px'}}>
+          ${(q.options||[]).map(function(o,i){
+            return html`<div className="row" key=${i}>
+              <input type="text" value=${o} onChange=${function(e){ setOpt(i,e.target.value); }}/>
+              <button className="iconbtn" aria-label="Move up" onClick=${function(){moveOpt(i,-1);}}><${Icon} n="up"/><//>
+              <button className="iconbtn" aria-label="Move down" onClick=${function(){moveOpt(i,1);}}><${Icon} n="down"/><//>
+              <button className="iconbtn" aria-label="Remove option" onClick=${function(){delOpt(i);}}><${Icon} n="close"/><//>
+            </div>`;
+          })}
+          <button className="btn btn-sm" onClick=${addOpt}>Add option</button>
+        </div>
+      </div>`:null}
+
+      ${q.type==='linear_scale'?html`<div className="card stack-sm">
+        <h3>Scale</h3>
+        <div className="row">
+          <label className="field" style=${{flex:1}}><span className="lbl small">From</span>
+            <input type="number" value=${q.min===undefined?1:q.min} onChange=${function(e){ up({min:e.target.value}); }}/></label>
+          <label className="field" style=${{flex:1}}><span className="lbl small">To</span>
+            <input type="number" value=${q.max===undefined?5:q.max} onChange=${function(e){ up({max:e.target.value}); }}/></label>
+        </div>
+        <div className="row">
+          <label className="field" style=${{flex:1}}><span className="lbl small">Label for lowest</span>
+            <input type="text" value=${q.minLabel||''} onChange=${function(e){ up({minLabel:e.target.value}); }}/></label>
+          <label className="field" style=${{flex:1}}><span className="lbl small">Label for highest</span>
+            <input type="text" value=${q.maxLabel||''} onChange=${function(e){ up({maxLabel:e.target.value}); }}/></label>
+        </div>
+      </div>`:null}
+
+      ${q.type==='number'?html`<div className="card">
+        <h3>Allowed range (optional)</h3>
+        <div className="row" style=${{marginTop:'10px'}}>
+          <label className="field" style=${{flex:1}}><span className="lbl small">Minimum</span>
+            <input type="number" value=${q.min===undefined?'':q.min} onChange=${function(e){ up({min:e.target.value===''?undefined:Number(e.target.value)}); }}/></label>
+          <label className="field" style=${{flex:1}}><span className="lbl small">Maximum</span>
+            <input type="number" value=${q.max===undefined?'':q.max} onChange=${function(e){ up({max:e.target.value===''?undefined:Number(e.target.value)}); }}/></label>
+        </div>
+      </div>`:null}
+
+      ${sect?null:html`<div className="card">
+        <h3>Image with the question</h3>
+        <p className="small muted" style=${{marginTop:'4px'}}>Shown above the question — useful for showing a card, photo or prompt to the respondent.</p>
+        <div className="stack-sm" style=${{marginTop:'10px'}}>
+          ${q.imageUrl?html`<img className="thumb" src=${q.imageUrl} alt=""/>`:null}
+          <div className="row">
+            <label className="btn btn-sm" style=${{flex:1}}>${q.imageUrl?'Replace image':'Attach image'}
+              <input type="file" accept="image/*" style=${{display:'none'}} onChange=${function(e){
+                var f=e.target.files&&e.target.files[0]; if(!f) return;
+                readImage(f,1000,0.7).then(function(d){ up({imageUrl:d}); },function(err){ UI.toast(err.message); });
+                e.target.value='';
+              }}/></label>
+            ${q.imageUrl?html`<button className="btn btn-sm btn-danger" onClick=${function(){ up({imageUrl:undefined}); }}>Remove</button>`:null}
+          </div>
+        </div>
+      </div>`}
+
+      <div className="card">
+        <h3>Preview</h3>
+        <div style=${{marginTop:'10px'}}>
+          <${Field} q=${q} value=${undefined} onChange=${function(){}}/>
+        </div>
+      </div>
+    </div>
+  <//>`;
+}
+
+/* ============================ Questionnaire editor ============================ */
+function QuestionnaireEditor(p){
+  var s1=useState(clone(p.questionnaire)), q=s1[0], setQ=s1[1];
+  var s2=useState(null), qe=s2[0], setQe=s2[1]; // {question, isNew}
+  var s3=useState(null), dragId=s3[0], setDragId=s3[1];
+  var s4=useState(false), saving=s4[0], setSaving=s4[1];
+  var baseSig=useRef(questionsSignature(p.questionnaire.questions));
+  var hasResponses=p.responseCount>0;
+
+  function up(patch){ setQ(function(prev){ return Object.assign({},prev,patch); }); }
+  function setQuestions(list){
+    var r=sanitizeConditions(list.map(function(x,i){ return Object.assign({},x,{order:i}); }));
+    if(r.cleared.length) UI.toast('Condition cleared on: '+r.cleared.join(', ')+' — it pointed at a question that no longer comes before it');
+    up({questions:r.questions});
+  }
+  function addQuestion(type){
+    setQe({isNew:true, question:{id:uid(), order:(q.questions||[]).length,
+      type:type||'short_text', label:'', required:false}});
+  }
+  function availableFor(qq){
+    var list=(q.questions||[]).slice().sort(byOrder);
+    var i=list.findIndex(function(x){ return x.id===qq.id; });
+    return i<0?list:list.slice(0,i);
+  }
+  function saveQuestion(qq){
+    var list=(q.questions||[]).slice();
+    var i=list.findIndex(function(x){ return x.id===qq.id; });
+    if(i>=0) list[i]=qq; else list.push(qq);
+    setQuestions(list); setQe(null);
+  }
+  function delQuestion(qq){
+    var dependents=(q.questions||[]).filter(function(x){ return x.showIf&&x.showIf.q===qq.id; });
+    UI.confirm({
+      title:isSection(qq.type)?'Delete this section heading?':'Delete this question?',
+      message: (dependents.length?(dependents.length+' other '+(dependents.length===1?'question depends':'questions depend')+' on this one; '+(dependents.length===1?'its condition':'their conditions')+' will be cleared so '+(dependents.length===1?'it is':'they are')+' always shown.\n\n'):'')
+        + (hasResponses
+        ? 'This form already has '+p.responseCount+' responses. Deleting removes it from future entries only — answers already collected stay in the export under the old form version.'
+        : 'It will be removed from the form.'),
+      danger:true, okText:'Delete'
+    }).then(function(yes){
+      if(!yes) return;
+      setQuestions((q.questions||[]).filter(function(x){ return x.id!==qq.id; }));
+    });
+  }
+  function move(i,d){
+    var list=(q.questions||[]).slice(); var j=i+d; if(j<0||j>=list.length) return;
+    var t=list[i]; list[i]=list[j]; list[j]=t; setQuestions(list);
+  }
+  function onDrop(targetId){
+    if(!dragId||dragId===targetId) return;
+    var list=(q.questions||[]).slice();
+    var from=list.findIndex(function(x){return x.id===dragId;});
+    var to=list.findIndex(function(x){return x.id===targetId;});
+    if(from<0||to<0) return;
+    var moved=list.splice(from,1)[0];
+    list.splice(to,0,moved);
+    setQuestions(list); setDragId(null);
+  }
+  function save(){
+    if(!String(q.title||'').trim()){ UI.toast('Give the questionnaire a title'); return; }
+    var changed=questionsSignature(q.questions)!==baseSig.current;
+    setSaving(true);
+    var go=function(){
+      saveQuestionnaire(Object.assign({},q,{title:String(q.title).trim(), targetCount:Number(q.targetCount)||0}),
+                        {bumpVersion:changed})
+        .then(function(saved){ setSaving(false); UI.toast('Questionnaire saved'); p.onSaved(saved); },
+              function(e){ setSaving(false); UI.toast('Could not save: '+(e.message||e)); });
+    };
+    if(changed && hasResponses){
+      UI.confirm({title:'Change the form structure?',
+        message:'You have changed the questions and this form already has '+p.responseCount+' responses. Saving creates version '+((q.version||1)+1)+'. Existing responses keep version '+(q.version||1)+' and stay readable in exports.',
+        okText:'Save as version '+((q.version||1)+1)}).then(function(yes){ if(yes) go(); else setSaving(false); });
+    } else go();
+  }
+
+  return html`<${Sheet} title=${p.isNew?'New questionnaire':'Edit questionnaire'} onClose=${p.onClose}
+    foot=${html`<${React.Fragment}>
+      <button className="btn" onClick=${p.onClose}>Cancel</button>
+      <button className="btn btn-primary btn-block" disabled=${saving} onClick=${save}>Save questionnaire</button>
+    <//>`}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <div className="card stack-sm">
+        <label className="field"><span className="lbl">Title</span>
+          <input type="text" value=${q.title||''} placeholder="e.g. Household diarrhoea survey"
+            onChange=${function(e){ up({title:e.target.value}); }}/></label>
+        <label className="field"><span className="lbl">Description</span>
+          <textarea value=${q.description||''} placeholder="Notes for yourself — where and why this is collected"
+            onChange=${function(e){ up({description:e.target.value}); }} style=${{minHeight:'70px'}}></textarea></label>
+        <label className="field"><span className="lbl">Target number of responses</span>
+          <input type="number" min="0" value=${q.targetCount===undefined?'':q.targetCount}
+            onChange=${function(e){ up({targetCount:e.target.value===''?'':Number(e.target.value)}); }}/></label>
+        <p className="tiny muted num">Version ${q.version||1}${hasResponses?(' · '+p.responseCount+' responses collected'):''}</p>
+      </div>
+
+      <div className="row-between">
+        <h2>Questions (${answerable(q.questions).length})</h2>
+        <div className="row" style=${{gap:'8px'}}>
+          <button className="btn btn-sm" onClick=${function(){ addQuestion('section'); }}>Add section</button>
+          <button className="btn btn-sm btn-primary" onClick=${function(){ addQuestion('short_text'); }}>Add question</button>
+        </div>
+      </div>
+
+      ${(q.questions||[]).length===0?html`<div className="empty">No questions yet. Add the first one.</div>`:null}
+
+      <div>
+        ${(q.questions||[]).map(function(qq,i){
+          return html`<div key=${qq.id} className=${'qcard'+(dragId===qq.id?' drag-over':'')+(isSection(qq.type)?' active':'')} draggable=${true}
+            onDragStart=${function(){ setDragId(qq.id); }}
+            onDragOver=${function(e){ e.preventDefault(); }}
+            onDrop=${function(e){ e.preventDefault(); onDrop(qq.id); }}
+            onDragEnd=${function(){ setDragId(null); }}>
+            <div className="row-between">
+              <div style=${{minWidth:0,flex:1}}>
+                <div className="row" style=${{gap:'8px'}}>
+                  <span className="tiny muted num">${i+1}</span>
+                  <span style=${{fontWeight:isSection(qq.type)?680:580,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                    ${qq.label||(isSection(qq.type)?'Untitled section':'Untitled question')}</span>
+                </div>
+                <div className="tiny muted" style=${{marginTop:'3px'}}>
+                  ${typeLabel(qq.type)}${qq.required?' · required':''}${qq.imageUrl?' · image':''}
+                  ${isChoice(qq.type)?(' · '+(qq.options||[]).length+' options'):''}
+                </div>
+                ${qq.showIf&&qq.showIf.q?html`<div className="cond-note" style=${{marginTop:'5px'}}>
+                  ${condSummary(qq,q.questions)}</div>`:null}
+              </div>
+            </div>
+            <div className="row" style=${{marginTop:'10px',gap:'6px'}}>
+              <button className="iconbtn" aria-label="Move up" disabled=${i===0} onClick=${function(){move(i,-1);}}><${Icon} n="up"/><//>
+              <button className="iconbtn" aria-label="Move down" disabled=${i===(q.questions||[]).length-1} onClick=${function(){move(i,1);}}><${Icon} n="down"/><//>
+              <div style=${{flex:1}}></div>
+              <button className="btn btn-sm" onClick=${function(){ setQe({isNew:false,question:qq}); }}>Edit</button>
+              <button className="btn btn-sm btn-danger" onClick=${function(){ delQuestion(qq); }}>Delete</button>
+            </div>
+          </div>`;
+        })}
+      </div>
+      <p className="tiny muted">Drag a card to reorder on a computer, or use the arrows on a phone.</p>
+    </div>
+
+    ${qe?html`<${QuestionEditor} key=${qe.question.id} question=${qe.question} isNew=${qe.isNew}
+      available=${availableFor(qe.question)}
+      onClose=${function(){ setQe(null); }} onSave=${saveQuestion}/>`:null}
+  <//>`;
+}
+
+/* ============================ import + guide UI ============================ */
+var AI_PROMPT =
+'I have a draft survey questionnaire attached (PDF or Word document). Please convert it into an Excel file with exactly these columns, one row per question, in this exact order:\n\n'+
+'Order | Question Type | Label | Options | Required | Image Filename | Show If Question | Show If Condition | Show If Values\n\n'+
+'Rules:\n\n'+
+'- Order: sequential integer starting at 1, matching the order questions and headings appear in my draft.\n'+
+'- Question Type: must be exactly one of: section, short_text, long_text, multiple_choice, checkbox, dropdown, linear_scale, date, number, image_upload\n'+
+'  - Use section for a heading that groups the questions under it (e.g. "Part B: Household characteristics"). A section row carries no answer: leave Options and Required blank. A section groups every row after it until the next section row.\n'+
+'  - Use multiple_choice for "select one" questions\n'+
+'  - Use checkbox for "select all that apply" questions\n'+
+'  - Use short_text for brief open answers, long_text for paragraph-length open answers\n'+
+'  - Use linear_scale for rating/scale questions (e.g. 1-5, 1-10)\n'+
+'  - Use dropdown only if my draft explicitly says "dropdown" or "select from list"\n'+
+'- Label: the exact question text or heading, cleaned of numbering.\n'+
+'- Options: for multiple_choice, checkbox, and dropdown questions, list all options separated by semicolons (;). For linear_scale, put the min and max separated by a semicolon (e.g. "1;5"). Leave blank for all other types, including section.\n'+
+'- Required: Y if the question appears mandatory in my draft (or is not marked optional), N if explicitly marked optional. Leave blank for section rows.\n'+
+'- Image Filename: leave blank unless my draft references an attached image for a question, in which case name it descriptively (e.g. "q3_diagram.png") — I will attach matching image files separately.\n\n'+
+'Skip logic — this is important, my draft uses it:\n\n'+
+'- Whenever my draft says something like "If yes, ...", "If no, skip to Q12", "Ask only if...", or indents a sub-question under a parent answer, express it with the last three columns instead of leaving it in the question text.\n'+
+'- Show If Question: the Order number of the EARLIER row whose answer controls this row. It must be a number that appears in the Order column above this row, and it must not be a section row. Leave blank when the row is always asked.\n'+
+'- Show If Condition: one of "is one of", "is not one of", or "answered". Blank means "is one of".\n'+
+'- Show If Values: the answers that reveal this row, separated by semicolons. They must be spelled exactly as they appear in that earlier row\'s Options column (e.g. Yes). Leave blank when the condition is "answered".\n'+
+'- To make a whole group conditional, put the condition on the section row — that hides every row under it up to the next section.\n'+
+'- Remove any "If yes," or "(skip if no)" wording from the Label once it is expressed in these columns.\n\n'+
+'If any question in my draft is ambiguous or you are unsure of the correct Question Type or skip logic, add a row anyway with your best guess and add a note in a comment/second sheet listing which rows need my manual review. Do not skip any questions. Output the result as an actual .xlsx file I can download, not just a text table.';
+
+function ImportReview(p){
+  // p: draft {title, questions, warnings, source}, existing, onCancel, onDone
+  var s1=useState(p.draft.title||''), title=s1[0], setTitle=s1[1];
+  var s2=useState(p.draft.questions), qs=s2[0], setQs=s2[1];
+  var s3=useState({}), images=s3[0], setImages=s3[1];
+  var s4=useState(null), edit=s4[0], setEdit=s4[1];
+  var s5=useState(false), saving=s5[0], setSaving=s5[1];
+
+  var wanted=useMemo(function(){
+    var out=[]; qs.forEach(function(q){ if(q.imageFilename) out.push(String(q.imageFilename).trim()); });
+    return out;
+  },[qs]);
+  var matched=wanted.filter(function(f){ return images[f.toLowerCase()]; }).length;
+  var uncertain=qs.filter(function(q){ return q._uncertain; }).length;
+  var sectionCount=qs.filter(function(q){ return isSection(q.type); }).length;
+  var condCount=qs.filter(function(q){ return q.showIf&&q.showIf.q; }).length;
+
+  function reorder(list){
+    var r=sanitizeConditions(list.map(function(q,i){ return Object.assign({},q,{order:i}); }));
+    if(r.cleared.length) UI.toast('Condition cleared on: '+r.cleared.join(', '));
+    setQs(r.questions);
+  }
+  function availableFor(qq){
+    var i=qs.findIndex(function(x){ return x.id===qq.id; });
+    return i<0?qs:qs.slice(0,i);
+  }
+  function move(i,d){
+    var l=qs.slice(), j=i+d; if(j<0||j>=l.length) return;
+    var t=l[i]; l[i]=l[j]; l[j]=t; reorder(l);
+  }
+  function removeQ(q){
+    var dep=qs.filter(function(x){ return x.showIf&&x.showIf.q===q.id; }).length;
+    UI.confirm({title:isSection(q.type)?'Remove this section from the import?':'Remove this question from the import?',
+      message:q.label+(dep?('\n\n'+dep+' later '+(dep===1?'question depends':'questions depend')+' on it; '+(dep===1?'its condition':'their conditions')+' will be cleared.'):''),
+      danger:true,okText:'Remove'})
+      .then(function(yes){ if(yes) reorder(qs.filter(function(x){ return x.id!==q.id; })); });
+  }
+  function pickImages(files){
+    var jobs=[];
+    for(var i=0;i<files.length;i++){
+      (function(f){
+        jobs.push(readImage(f,1000,0.7).then(function(d){ return [f.name.toLowerCase(),d]; },function(){ return null; }));
+      })(files[i]);
+    }
+    Promise.all(jobs).then(function(pairs){
+      var next=Object.assign({},images);
+      pairs.forEach(function(pr){ if(pr) next[pr[0]]=pr[1]; });
+      setImages(next);
+      var got=wanted.filter(function(f){ return next[f.toLowerCase()]; }).length;
+      UI.toast(got+' of '+wanted.length+' images matched');
+    });
+  }
+  function confirmImport(){
+    var t=String(title).trim();
+    if(!t){ UI.toast('Give the questionnaire a title'); return; }
+    if(!qs.length){ UI.toast('There are no questions to import'); return; }
+    var finalTitle=uniqueTitle(t,p.existing);
+    var go=function(){
+      setSaving(true);
+      var questions=sanitizeConditions(stripDraftFlags(applyImages(qs,images))).questions;
+      saveQuestionnaire({id:uid(), title:finalTitle, description:p.draft.description||'', version:1,
+        targetCount:0, questions:questions, createdAt:nowISO(), updatedAt:nowISO()})
+        .then(function(saved){ setSaving(false); UI.toast('Imported “'+finalTitle+'” · '+questions.length+' questions'); p.onDone(saved); },
+              function(e){ setSaving(false); UI.toast('Import failed: '+(e.message||e)); });
+    };
+    if(finalTitle!==t){
+      UI.confirm({title:'A questionnaire already uses that name',
+        message:'Importing never overwrites an existing form. This one will be saved as “'+finalTitle+'”. You can rename it afterwards.',
+        okText:'Import as “'+finalTitle+'”'}).then(function(yes){ if(yes) go(); });
+    } else go();
+  }
+
+  return html`<${Sheet} title="Review before importing" onClose=${p.onCancel}
+    foot=${html`<${React.Fragment}>
+      <button className="btn" onClick=${p.onCancel}>Cancel</button>
+      <button className="btn btn-primary btn-block" disabled=${saving||!qs.length} onClick=${confirmImport}>
+        ${saving?'Importing…':'Confirm import'}</button>
+    <//>`}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <div className="banner info">
+        Nothing is saved until you tap Confirm import. ${answerable(qs).length} questions${sectionCount?(' in '+sectionCount+' '+(sectionCount===1?'section':'sections')):''}${condCount?(', '+condCount+' shown conditionally'):''} ready${p.draft.source==='document'?', parsed from your document':''}.
+      </div>
+      ${uncertain>0?html`<div className="banner warn">
+        ${uncertain} ${uncertain===1?'question was':'questions were'} guessed and need checking — they are marked below. Open each one and set the answer type yourself.
+      </div>`:null}
+      ${(p.draft.warnings||[]).length?html`<div className="card">
+        <h3>Warnings</h3>
+        <ul className="small muted" style=${{margin:'8px 0 0',paddingLeft:'18px'}}>
+          ${p.draft.warnings.map(function(w,i){ return html`<li key=${i}>Row ${w.row}: ${w.message}</li>`; })}
+        </ul>
+      </div>`:null}
+
+      <div className="card">
+        <label className="field"><span className="lbl">Questionnaire title</span>
+          <input type="text" value=${title} onChange=${function(e){ setTitle(e.target.value); }}/></label>
+      </div>
+
+      ${wanted.length?html`<div className="card">
+        <h3>Images</h3>
+        <p className="small muted" style=${{marginTop:'5px'}}>
+          ${wanted.length} ${wanted.length===1?'question refers':'questions refer'} to an image file. Select them from this device — they are matched by filename.</p>
+        <label className="btn btn-sm btn-block" style=${{marginTop:'10px'}}>Choose image files
+          <input type="file" accept="image/*" multiple style=${{display:'none'}}
+            onChange=${function(e){ if(e.target.files&&e.target.files.length) pickImages(e.target.files); e.target.value=''; }}/></label>
+        <p className="small" style=${{marginTop:'8px'}}>
+          <b className="num">${matched} of ${wanted.length}</b> matched.
+          ${matched<wanted.length?html`<span className="muted"> Missing: ${wanted.filter(function(f){ return !images[f.toLowerCase()]; }).join(', ')} — you can import without them and attach later.</span>`:null}
+        </p>
+      </div>`:null}
+
+      <h2>Questions as they will appear</h2>
+      ${qs.map(function(q,i){
+        return html`<div key=${q.id}>
+          ${q._uncertain?html`<p className="tiny" style=${{color:'var(--pending)',fontWeight:600,margin:'0 0 4px 2px'}}>
+            Guessed as ${typeLabel(q.type)} — please check</p>`:null}
+          <${Field} q=${applyImages([q],images)[0]} value=${undefined} onChange=${function(){}}
+            conditional=${!!(q.showIf&&q.showIf.q)} note=${condSummary(q,qs)}/>
+          <div className="row" style=${{margin:'-4px 0 12px',gap:'6px'}}>
+            <span className="tiny muted num">${i+1} · ${typeLabel(q.type)}${q.required?' · required':''}</span>
+            <div style=${{flex:1}}></div>
+            <button className="iconbtn" aria-label="Move up" disabled=${i===0} onClick=${function(){move(i,-1);}}><${Icon} n="up"/><//>
+            <button className="iconbtn" aria-label="Move down" disabled=${i===qs.length-1} onClick=${function(){move(i,1);}}><${Icon} n="down"/><//>
+            <button className="btn btn-sm" onClick=${function(){ setEdit(q); }}>Edit</button>
+            <button className="btn btn-sm btn-danger" onClick=${function(){ removeQ(q); }}>Remove</button>
+          </div>
+        </div>`;
+      })}
+      ${!qs.length?html`<div className="empty">Every question was removed. Cancel and start again.</div>`:null}
+    </div>
+
+    ${edit?html`<${QuestionEditor} key=${edit.id} question=${edit} isNew=${false}
+      available=${availableFor(edit)}
+      onClose=${function(){ setEdit(null); }}
+      onSave=${function(saved){
+        reorder(qs.map(function(x){
+          if(x.id!==saved.id) return x;
+          var merged=Object.assign({},saved); delete merged._uncertain; return merged;
+        }));
+        setEdit(null);
+      }}/>`:null}
+  <//>`;
+}
+
+function ImportSheet(p){
+  var s1=useState(null), draft=s1[0], setDraft=s1[1];
+  var s2=useState(null), errors=s2[0], setErrors=s2[1];
+  var s3=useState(''), busy=s3[0], setBusy=s3[1];
+  var s4=useState(''), fileName=s4[0], setFileName=s4[1];
+
+  function handleSheet(file){
+    setErrors(null); setBusy('Reading '+file.name+'…'); setFileName(file.name);
+    readWorkbookRows(file).then(function(aoa){
+      var r=validateImportRows(aoa);
+      setBusy('');
+      if(r.errors.length){ setErrors(r.errors); return; }
+      setDraft({title:file.name.replace(/\.[^.]+$/,''), questions:r.questions, warnings:r.warnings, source:'template'});
+    },function(e){ setBusy(''); setErrors([{row:0,message:e.message||String(e)}]); });
+  }
+  function handleDoc(file){
+    setErrors(null); setFileName(file.name);
+    var isPdf=/\.pdf$/i.test(file.name), isDocx=/\.docx$/i.test(file.name);
+    if(!isPdf && !isDocx){ setErrors([{row:0,message:'Upload a .docx or .pdf file.'}]); return; }
+    setBusy('Reading '+file.name+'… this can take a moment');
+    (isPdf?extractPdf(file):extractDocx(file)).then(function(text){
+      var r=parseDocumentText(text);
+      setBusy('');
+      if(!r.questions.length){
+        setErrors([{row:0,message:'No questions could be picked out of that document. Number your questions (1., 2., 3.) and try again, or use the Guide to convert it with an AI assistant.'}]);
+        return;
+      }
+      setDraft({title:file.name.replace(/\.[^.]+$/,''), questions:r.questions, warnings:[], source:'document'});
+    },function(e){ setBusy(''); setErrors([{row:0,message:e.message||String(e)}]); });
+  }
+
+  return html`<${Sheet} title="Import a questionnaire" onClose=${p.onClose}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      ${busy?html`<div className="banner info">${busy}</div>`:null}
+      ${errors?html`<div className="card" style=${{borderColor:'var(--fail)'}}>
+        <h3 style=${{color:'var(--fail)'}}>${fileName} was not imported</h3>
+        <p className="small muted" style=${{marginTop:'5px'}}>Nothing was saved. Fix these rows in the file and upload it again.</p>
+        <ul className="small" style=${{margin:'10px 0 0',paddingLeft:'18px'}}>
+          ${errors.map(function(e,i){ return html`<li key=${i} style=${{marginBottom:'4px'}}>
+            ${e.row?html`<b>Row ${e.row}: </b>`:null}${e.message}</li>`; })}
+        </ul>
+      </div>`:null}
+
+      <div className="card">
+        <h2>From the Excel template</h2>
+        <p className="small muted" style=${{marginTop:'6px'}}>
+          The reliable path. Every row is checked before anything is saved, and you see the finished form before confirming.</p>
+        <div className="row" style=${{marginTop:'12px'}}>
+          <button className="btn" style=${{flex:1}} onClick=${function(){ downloadTemplate(); UI.toast('Template downloaded'); }}>Download template</button>
+        </div>
+        <label className="btn btn-primary btn-block" style=${{marginTop:'10px'}}>Upload filled template
+          <input type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            style=${{display:'none'}} onChange=${function(e){ var f=e.target.files&&e.target.files[0]; if(f) handleSheet(f); e.target.value=''; }}/></label>
+        <p className="tiny muted" style=${{marginTop:'8px'}}>
+          Columns: ${IMPORT_HEADERS.join(' | ')}</p>
+      </div>
+
+      <div className="card">
+        <h2>From a Word or PDF draft</h2>
+        <p className="small muted" style=${{marginTop:'6px'}}>
+          A rough first pass. The app reads numbered questions and lettered options and guesses the answer type — you check and fix every question on the next screen before it is saved. Nothing is ever overwritten.</p>
+        <label className="btn btn-block" style=${{marginTop:'12px'}}>Upload .docx or .pdf
+          <input type="file" accept=".docx,.pdf,application/pdf" style=${{display:'none'}}
+            onChange=${function(e){ var f=e.target.files&&e.target.files[0]; if(f) handleDoc(f); e.target.value=''; }}/></label>
+        <button className="btn-ghost btn btn-sm" style=${{marginTop:'6px'}} onClick=${p.onGuide}>
+          Better results: convert it with an AI assistant first</button>
+      </div>
+    </div>
+
+    ${draft?html`<${ImportReview} draft=${draft} existing=${p.existing}
+      onCancel=${function(){ setDraft(null); }}
+      onDone=${function(saved){ setDraft(null); p.onImported(saved); }}/>`:null}
+  <//>`;
+}
+
+function GuideSheet(p){
+  return html`<${Sheet} title="Guide" onClose=${p.onClose}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <div className="card">
+        <h2>Turn a draft questionnaire into an importable file</h2>
+        <p className="small muted" style=${{marginTop:'6px'}}>
+          Upload your draft questionnaire to an AI assistant along with the prompt below to get a ready-to-import Excel file.
+          The app's own document reader only guesses; an assistant reading the whole draft does a far better job.</p>
+      </div>
+
+      <div className="card">
+        <h3>The prompt</h3>
+        <pre className="code" style=${{marginTop:'10px',maxHeight:'260px',overflowY:'auto',whiteSpace:'pre-wrap'}}>${AI_PROMPT}</pre>
+        <button className="btn btn-primary btn-block" style=${{marginTop:'10px'}} onClick=${function(){
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(AI_PROMPT).then(function(){ UI.toast('Prompt copied'); },
+              function(){ UI.toast('Copy blocked — select the text above and copy it'); });
+          } else UI.toast('Select the text above and copy it');
+        }}>Copy prompt</button>
+      </div>
+
+      <div className="card">
+        <h3>Then</h3>
+        <p className="small muted" style=${{marginTop:'6px'}}>
+          After the AI generates the file, download it and use Import questionnaire → template import in the Questionnaire section.
+          Always check the preview screen before confirming, especially any rows the AI flagged as uncertain.</p>
+        <div className="row" style=${{marginTop:'12px'}}>
+          <button className="btn" style=${{flex:1}} onClick=${function(){ downloadTemplate(); UI.toast('Template downloaded'); }}>Blank template</button>
+          ${p.onOpenImport?html`<button className="btn btn-primary" onClick=${p.onOpenImport}>Open import</button>`:null}
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>What the columns mean</h3>
+        <div style=${{marginTop:'8px'}}>
+          ${TYPES.map(function(t){
+            var o=isChoice(t[0])?'Options: separate with semicolons':(t[0]==='linear_scale'?'Options: 1;5':'Options: leave blank');
+            return html`<div key=${t[0]} className="entry" style=${{padding:'8px 0'}}>
+              <div><div className="small mono">${t[0]}</div><div className="tiny muted">${t[1]}</div></div>
+              <div className="tiny muted" style=${{textAlign:'right'}}>${o}</div>
+            </div>`;
+          })}
+        </div>
+        <p className="tiny muted" style=${{marginTop:'10px'}}>
+          Order is a whole number starting at 1. Required is Y or N, blank for a section. Image Filename is blank unless a picture goes with the question.</p>
+        <div style=${{marginTop:'12px'}}>
+          <h3>Skip logic columns</h3>
+          <div className="entry" style=${{padding:'8px 0'}}>
+            <div><div className="small mono">Show If Question</div>
+              <div className="tiny muted">Order number of the earlier question that controls this row</div></div></div>
+          <div className="entry" style=${{padding:'8px 0'}}>
+            <div><div className="small mono">Show If Condition</div>
+              <div className="tiny muted">is one of · is not one of · answered</div></div></div>
+          <div className="entry" style=${{padding:'8px 0'}}>
+            <div><div className="small mono">Show If Values</div>
+              <div className="tiny muted">Answers that reveal it, semicolon separated, spelled exactly as in that question's options</div></div></div>
+          <p className="tiny muted" style=${{marginTop:'8px'}}>
+            Put the condition on a section row to hide a whole group at once. Answers to hidden questions are never saved or exported.</p>
+        </div>
+      </div>
+    </div>
+  <//>`;
+}
+
+/* ============================ Questionnaire page ============================ */
+function QuestionnairePage(p){
+  var s1=useState(null), ed=s1[0], setEd=s1[1];
+  var s2=useState(false), imp=s2[0], setImp=s2[1];
+  var s3=useState(false), guide=s3[0], setGuide=s3[1];
+  var counts=p.countsByQ;
+
+  function newQ(){
+    setEd({isNew:true, questionnaire:{id:uid(), title:'', description:'', version:1, targetCount:0,
+      questions:[], createdAt:nowISO(), updatedAt:nowISO()}});
+  }
+  function duplicate(q){
+    var copy=clone(q);
+    copy.id=uid(); copy.title=q.title+' (copy)'; copy.version=1; copy.createdAt=nowISO();
+    copy.questions=(copy.questions||[]).map(function(x){ return Object.assign({},x,{id:uid()}); });
+    saveQuestionnaire(copy).then(function(){ UI.toast('Duplicated'); p.refresh(); });
+  }
+  function remove(q){
+    var n=counts[q.id]||0;
+    UI.confirm({
+      title:'Delete “'+q.title+'”?',
+      message: n>0
+        ? 'This deletes the form AND its '+n+' collected responses from this device. Export or sync them first — this cannot be undone.'
+        : 'This form has no responses. It will be removed permanently.',
+      danger:true, okText:'Delete permanently',
+      typeToConfirm: n>0 ? 'DELETE' : null
+    }).then(function(yes){
+      if(!yes) return;
+      responsesFor(q.id).then(function(rs){
+        return tx(['questionnaires','responses','drafts','versions'],'readwrite',function(a){
+          a.questionnaires.delete(q.id);
+          rs.forEach(function(r){ a.responses.delete(r.entryId); });
+          a.drafts.delete('new:'+q.id);
+          rs.forEach(function(r){ a.drafts.delete('entry:'+r.entryId); });
+          a.versions.openCursor().onsuccess=function(ev){
+            var c=ev.target.result; if(!c) return;
+            if(c.value.questionnaireId===q.id) c.delete();
+            c.continue();
+          };
+        });
+      }).then(function(){
+        if(p.settings.activeQuestionnaireId===q.id) return setSetting('activeQuestionnaireId',null);
+      }).then(function(){ UI.toast('Deleted'); p.refresh(); });
+    });
+  }
+
+  return html`<div className="wrap"><div className="stack" style=${{paddingTop:'14px'}}>
+    <div className="row-between">
+      <h1>Questionnaires</h1>
+      <button className="btn btn-sm btn-primary" onClick=${newQ}>New</button>
+    </div>
+    <div className="row">
+      <button className="btn btn-sm" style=${{flex:1}} onClick=${function(){ setImp(true); }}>Import questionnaire</button>
+      <button className="btn btn-sm" onClick=${function(){ setGuide(true); }}>Guide</button>
+    </div>
+    ${p.questionnaires.length===0?html`<div className="card empty">
+      No questionnaires yet. Create one and add your questions.
+    </div>`:null}
+    ${p.questionnaires.map(function(q){
+      var active=p.settings.activeQuestionnaireId===q.id;
+      var n=counts[q.id]||0;
+      return html`<div key=${q.id} className=${'card'+(active?' qcard active':'')}>
+        <div className="row-between">
+          <h2 style=${{minWidth:0}}>${q.title||'Untitled'}</h2>
+          ${active?html`<span className="badge synced">Active</span>`:null}
+        </div>
+        ${q.description?html`<p className="small muted" style=${{marginTop:'5px'}}>${q.description}</p>`:null}
+        <p className="tiny muted num" style=${{marginTop:'7px'}}>
+          v${q.version} · ${answerable(q.questions).length} questions${answerable(q.questions).length!==(q.questions||[]).length?(' · '+((q.questions||[]).length-answerable(q.questions).length)+' sections'):''} · ${n} responses${q.targetCount?(' · target '+q.targetCount):''}</p>
+        <div className="row" style=${{marginTop:'12px',flexWrap:'wrap',gap:'8px'}}>
+          ${!active?html`<button className="btn btn-sm" onClick=${function(){
+            p.onSetActive(q.id); UI.toast('Now collecting for “'+q.title+'”');
+          }}>Set active</button>`:null}
+          <button className="btn btn-sm" onClick=${function(){ setEd({isNew:false,questionnaire:q}); }}>Edit</button>
+          <button className="btn btn-sm" onClick=${function(){ duplicate(q); }}>Duplicate</button>
+          <button className="btn btn-sm btn-danger" onClick=${function(){ remove(q); }}>Delete</button>
+        </div>
+      </div>`;
+    })}
+  </div>
+
+  ${imp?html`<${ImportSheet} existing=${p.questionnaires}
+    onClose=${function(){ setImp(false); }}
+    onGuide=${function(){ setGuide(true); }}
+    onImported=${function(saved){
+      setImp(false); p.refresh();
+      if(!p.settings.activeQuestionnaireId) p.onSetActive(saved.id);
+    }}/>`:null}
+  ${guide?html`<${GuideSheet} onClose=${function(){ setGuide(false); }}
+    onOpenImport=${function(){ setGuide(false); setImp(true); }}/>`:null}
+
+  ${ed?html`<${QuestionnaireEditor} key=${ed.questionnaire.id} questionnaire=${ed.questionnaire} isNew=${ed.isNew}
+    responseCount=${counts[ed.questionnaire.id]||0}
+    onClose=${function(){ setEd(null); }}
+    onSaved=${function(saved){
+      setEd(null); p.refresh();
+      if(!p.settings.activeQuestionnaireId) p.onSetActive(saved.id);
+    }}/>`:null}
+  </div>`;
+}
+
+/* ============================ Functions (settings) page ============================ */
+var APPS_SCRIPT_CODE =
+'function doPost(e) {\n'+
+'  var lock = LockService.getScriptLock();\n'+
+'  lock.waitLock(30000);\n'+
+'  try {\n'+
+'    var d = JSON.parse(e.postData.contents);\n'+
+'    if (d.action === "ping") return out({ ok: true, message: "SurveyScholar connected" });\n'+
+'    var ss = SpreadsheetApp.getActiveSpreadsheet();\n'+
+'    var name = String(d.questionnaire.title || "Responses").substring(0, 90);\n'+
+'    var sh = ss.getSheetByName(name) || ss.insertSheet(name);\n'+
+'    var meta = ["Entry ID", "Timestamp", "Last updated", "Interviewer", "Form version", "Deleted"];\n'+
+'    var labels = d.questions.map(function (q) { return q.label; });\n'+
+'    var header = sh.getLastRow() > 0 ? sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0] : [];\n'+
+'    if (!header.length) { header = meta.concat(labels); sh.getRange(1, 1, 1, header.length).setValues([header]); }\n'+
+'    else {\n'+
+'      var add = meta.concat(labels).filter(function (l) { return header.indexOf(l) === -1; });\n'+
+'      if (add.length) { sh.getRange(1, header.length + 1, 1, add.length).setValues([add]); header = header.concat(add); }\n'+
+'    }\n'+
+'    var row = new Array(header.length).fill("");\n'+
+'    function put(label, val) { var i = header.indexOf(label); if (i > -1) row[i] = val; }\n'+
+'    put("Entry ID", d.entry.entryId);\n'+
+'    put("Timestamp", d.entry.createdAt);\n'+
+'    put("Last updated", d.entry.updatedAt);\n'+
+'    put("Interviewer", d.interviewer);\n'+
+'    put("Form version", d.questionnaire.version);\n'+
+'    put("Deleted", d.entry.deleted ? "DELETED " + d.entry.deletedAt : "");\n'+
+'    d.questions.forEach(function (q) { put(q.label, d.entry.answers[q.id]); });\n'+
+'    var ids = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues() : [];\n'+
+'    var at = -1;\n'+
+'    for (var i = 0; i < ids.length; i++) { if (String(ids[i][0]) === String(d.entry.entryId)) { at = i + 2; break; } }\n'+
+'    if (at > 0) sh.getRange(at, 1, 1, row.length).setValues([row]);\n'+
+'    else sh.appendRow(row);\n'+
+'    return out({ ok: true, entryId: d.entry.entryId, updated: at > 0 });\n'+
+'  } catch (err) {\n'+
+'    return out({ ok: false, error: String(err) });\n'+
+'  } finally {\n'+
+'    lock.releaseLock();\n'+
+'  }\n'+
+'}\n'+
+'function doGet() { return out({ ok: true, message: "SurveyScholar endpoint is live" }); }\n'+
+'function out(o) {\n'+
+'  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);\n'+
+'}\n';
+
+function HelpSheet(p){
+  return html`<${Sheet} title="Connect a Google Sheet" onClose=${p.onClose}>
+    <div className="stack" style=${{paddingTop:'14px'}}>
+      <div className="card">
+        <p className="small">Entries are pushed to your own Google Sheet through a small script that you deploy once. No sign-in screen, no API keys in the app, and it keeps working from a static site.</p>
+      </div>
+      <div className="card stack-sm">
+        <h3>1. Make the sheet</h3>
+        <p className="small muted">Create a new Google Sheet. It will fill itself in — one tab per questionnaire.</p>
+        <h3>2. Open Apps Script</h3>
+        <p className="small muted">In the sheet: Extensions → Apps Script. Delete whatever is there.</p>
+        <h3>3. Paste this code</h3>
+        <pre className="code">${APPS_SCRIPT_CODE}</pre>
+        <button className="btn btn-sm" onClick=${function(){
+          navigator.clipboard.writeText(APPS_SCRIPT_CODE).then(function(){ UI.toast('Code copied'); },
+            function(){ UI.toast('Select and copy the code manually'); });
+        }}>Copy code</button>
+        <h3>4. Deploy it</h3>
+        <p className="small muted">Deploy → New deployment → type “Web app”. Execute as <b>Me</b>, Who has access <b>Anyone</b>. Authorise when asked.</p>
+        <h3>5. Paste the URL back here</h3>
+        <p className="small muted">Copy the web app URL (it ends in <b>/exec</b>) into the Sheet link field, then tap Test connection.</p>
+      </div>
+      <div className="card">
+        <h3>Good to know</h3>
+        <p className="small muted" style=${{marginTop:'6px'}}>Rows are matched by Entry ID, so re-sending an entry updates its row instead of adding a duplicate. If a sync fails halfway, retrying is always safe. Photos stay on the device — the sheet records that a photo exists.</p>
+      </div>
+    </div>
+  <//>`;
+}
+
+function FunctionsPage(p){
+  var s1=useState(p.settings.interviewer||''), name=s1[0], setName=s1[1];
+  var s2=useState(p.settings.sheetUrl||''), url=s2[0], setUrl=s2[1];
+  var s3=useState(false), help=s3[0], setHelp=s3[1];
+  var s4=useState(''), status=s4[0], setStatus=s4[1];
+  var s5=useState(false), busy=s5[0], setBusy=s5[1];
+  var s6=useState(false), guide=s6[0], setGuide=s6[1];
+  var fileRef=useRef(null);
+
+  useEffect(function(){ setName(p.settings.interviewer||''); setUrl(p.settings.sheetUrl||''); },
+    [p.settings.interviewer,p.settings.sheetUrl]);
+
+  function saveName(v){ setName(v); setSetting('interviewer',v).then(p.refresh); }
+  function saveUrl(){
+    var v=url.trim();
+    if(v && !/^https:\/\/script\.google\.com\/.+\/exec/.test(v)){
+      UI.confirm({title:'That URL looks unusual',message:'A deployed Apps Script web app URL starts with https://script.google.com/ and ends with /exec. Save it anyway?',okText:'Save anyway'})
+        .then(function(yes){ if(yes) setSetting('sheetUrl',v).then(function(){ UI.toast('Sheet link saved'); p.refresh(); }); });
+      return;
+    }
+    setSetting('sheetUrl',v).then(function(){ UI.toast('Sheet link saved'); p.refresh(); });
+  }
+  function test(){
+    if(!url.trim()){ setStatus('Add the web app URL first.'); return; }
+    setBusy(true); setStatus('Testing…');
+    postToScript(url.trim(),{action:'ping'}).then(function(r){
+      setBusy(false); setStatus('Connected. ' + (r.message||''));
+    },function(e){
+      setBusy(false); setStatus('Failed: '+(e.message||e)+' — check the deployment is set to “Anyone” and the URL ends in /exec.');
+    });
+  }
+  function pending(){ return p.allResponses.filter(function(r){ return r.syncStatus!=='synced'; }).length; }
+
+  function doRestore(file){
+    var fr=new FileReader();
+    fr.onload=function(){
+      var data;
+      try{ data=JSON.parse(fr.result); }catch(e){ UI.toast('That file is not readable JSON'); return; }
+      UI.confirm({title:'Restore this backup?',
+        message:'Entries in the backup will be written over anything with the same ID on this device. Everything else stays.',
+        okText:'Merge backup'}).then(function(yes){
+          if(!yes) return;
+          restoreAll(data,'merge').then(function(){ UI.toast('Backup restored'); p.refresh(); },
+            function(e){ UI.toast('Restore failed: '+(e.message||e)); });
+        });
+    };
+    fr.readAsText(file);
+  }
+
+  return html`<div className="wrap"><div className="stack" style=${{paddingTop:'14px'}}>
+    <div className="card">
+      <label className="field"><span className="lbl">Interviewer name</span>
+        <input type="text" value=${name} placeholder="Your name" onChange=${function(e){ saveName(e.target.value); }}/></label>
+      <p className="tiny muted" style=${{marginTop:'8px'}}>Tagged onto every entry you collect and every export.</p>
+    </div>
+
+    <div className="card stack-sm">
+      <div className="row-between"><h2>Google Sheet</h2>
+        <button className="btn-ghost btn btn-sm" onClick=${function(){ setHelp(true); }}>Setup guide</button></div>
+      <label className="field"><span className="lbl small">Web app URL</span>
+        <input type="url" inputMode="url" placeholder="https://script.google.com/macros/s/…/exec"
+          value=${url} onChange=${function(e){ setUrl(e.target.value); }}/></label>
+      <div className="row">
+        <button className="btn btn-sm btn-primary" onClick=${saveUrl}>Save link</button>
+        <button className="btn btn-sm" disabled=${busy} onClick=${test}>Test connection</button>
+      </div>
+      ${status?html`<p className="small" style=${{marginTop:'4px'}}>${status}</p>`:null}
+    </div>
+
+    <div className="card">
+      <div className="row-between"><h2>Sync</h2>
+        <span className="badge plain num">${pending()} waiting</span></div>
+      <p className="small muted" style=${{marginTop:'6px'}}>Pushes everything not yet confirmed as synced. Safe to run any time — re-sending an entry updates its row rather than duplicating it.</p>
+      <button className="btn btn-primary btn-block" style=${{marginTop:'12px'}} onClick=${p.onSyncNow}>Sync now</button>
+    </div>
+
+    <div className="card">
+      <h2>Appearance</h2>
+      <p className="small muted" style=${{marginTop:'6px'}}>Dark is easier on the eyes indoors and at night; light stays readable in direct sun.</p>
+      <div className="chips" style=${{marginTop:'12px'}}>
+        ${[['system','Follow device'],['light','Light'],['dark','Dark']].map(function(m){
+          return html`<button key=${m[0]} className=${'chip'+(p.theme===m[0]?' on':'')}
+            onClick=${function(){ p.onTheme(m[0]); }}>${m[1]}</button>`;
+        })}
+      </div>
+    </div>
+
+    <div className="card">
+      <div className="row-between"><h2>Guide</h2>
+        <button className="btn-ghost btn btn-sm" onClick=${function(){ setGuide(true); }}>Open</button></div>
+      <p className="small muted" style=${{marginTop:'6px'}}>Turn a Word or PDF draft questionnaire into a file this app can import, using an AI assistant. Includes the prompt and the blank template.</p>
+    </div>
+
+    <div className="card">
+      <h2>Backup</h2>
+      <p className="small muted" style=${{marginTop:'6px'}}>A full copy of every questionnaire, entry and setting on this device, as one JSON file. Keep one after each day in the field.</p>
+      <div className="row" style=${{marginTop:'12px'}}>
+        <button className="btn" style=${{flex:1}} onClick=${function(){ backupAll().then(function(){ UI.toast('Backup downloaded'); }); }}>Download backup</button>
+        <button className="btn" onClick=${function(){ fileRef.current.click(); }}>Restore</button>
+      </div>
+      <input ref=${fileRef} type="file" accept="application/json,.json" style=${{display:'none'}}
+        onChange=${function(e){ var f=e.target.files&&e.target.files[0]; if(f) doRestore(f); e.target.value=''; }}/>
+    </div>
+
+    <div className="card">
+      <h2>About</h2>
+      <p className="small muted" style=${{marginTop:'6px'}}>
+        SurveyScholar keeps everything in this browser's database on this device. Clearing site data or uninstalling
+        the app deletes it — the backup file is your safety net. Entry IDs are ${new Date().getFullYear().toString().slice(-2)}00001 upward and reset each January.
+      </p>
+      <p className="tiny muted num" style=${{marginTop:'8px'}}>
+        ${p.questionnaires.length} questionnaires · ${liveOnly(p.allResponses).length} entries${p.allResponses.length-liveOnly(p.allResponses).length>0?(' · '+(p.allResponses.length-liveOnly(p.allResponses).length)+' deleted, kept '+PURGE_DAYS+' days'):''}${p.installable?' · installable':''}
+      </p>
+      ${p.installable?html`<button className="btn btn-block" style=${{marginTop:'10px'}} onClick=${p.onInstall}>Add to home screen</button>`:null}
+    </div>
+  </div>
+  ${help?html`<${HelpSheet} onClose=${function(){ setHelp(false); }}/>`:null}
+  ${guide?html`<${GuideSheet} onClose=${function(){ setGuide(false); }}/>`:null}
+  </div>`;
+}
+
+/* ============================ App shell ============================ */
+var TABS=[['input','Input','input'],['overview','Overview','chart'],['questionnaire','Questionnaire','form'],['functions','Functions','gear']];
+
+function App(){
+  var s1=useState(location.hash.replace('#/','')||'input'), route=s1[0], setRoute=s1[1];
+  var s2=useState(null), data=s2[0], setData=s2[1];
+  var s3=useState(null), toast=s3[0], setToast=s3[1];
+  var s4=useState(null), confirmState=s4[0], setConfirmState=s4[1];
+  var s5=useState(false), syncing=s5[0], setSyncing=s5[1];
+  var s6=useState(null), deferredPrompt=s6[0], setDeferred=s6[1];
+  var s7=useState(navigator.onLine), online=s7[0], setOnline=s7[1];
+  var s8=useState(readTheme()), theme=s8[0], setTheme=s8[1];
+  var toastTimer=useRef(null);
+
+  var refresh=useCallback(function(){
+    return Promise.all([dbAll('questionnaires'),dbAll('responses'),getSettings()]).then(function(r){
+      var qs=r[0].sort(function(a,b){ return (a.createdAt||'')<(b.createdAt||'')?-1:1; });
+      setData({questionnaires:qs, responses:r[1], settings:r[2]});
+      return r;
+    });
+  },[]);
+
+  UI.toast=function(msg){
+    setToast(msg);
+    if(toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current=setTimeout(function(){ setToast(null); },3200);
+  };
+  UI.confirm=function(opts){
+    return new Promise(function(res){ setConfirmState({opts:opts, done:function(v){ setConfirmState(null); res(v); }}); });
+  };
+
+  useEffect(function(){
+    repairCounters()
+      .then(getSettings)
+      .then(function(st){ return purgeOldDeleted(!!st.sheetUrl); })
+      .then(refresh).catch(function(e){
+      setData({questionnaires:[],responses:[],settings:{interviewer:'',sheetUrl:'',activeQuestionnaireId:null},dbError:String(e)});
+    });
+    var onHash=function(){ setRoute(location.hash.replace('#/','')||'input'); };
+    var onOn=function(){ setOnline(true); }, onOff=function(){ setOnline(false); };
+    var onBip=function(e){ e.preventDefault(); setDeferred(e); };
+    window.addEventListener('hashchange',onHash);
+    window.addEventListener('online',onOn); window.addEventListener('offline',onOff);
+    window.addEventListener('beforeinstallprompt',onBip);
+    if(!location.hash) location.hash='#/input';
+    applyTheme(readTheme());
+    var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+    var onScheme=function(){ setTheme(function(t){ if(t==='system') applyTheme('system'); return t; }); };
+    if(mq&&mq.addEventListener) mq.addEventListener('change',onScheme);
+    return function(){
+      if(mq&&mq.removeEventListener) mq.removeEventListener('change',onScheme);
+      window.removeEventListener('hashchange',onHash);
+      window.removeEventListener('online',onOn); window.removeEventListener('offline',onOff);
+      window.removeEventListener('beforeinstallprompt',onBip);
+    };
+  },[]);
+
+  var setActive=useCallback(function(id){
+    setSetting('activeQuestionnaireId',id).then(refresh);
+  },[refresh]);
+
+  var runSync=useCallback(function(silent){
+    if(syncing) return Promise.resolve();
+    setSyncing(true);
+    return syncPending(function(done,total){ if(!silent) UI.toast('Syncing '+done+' of '+total+'…'); })
+      .then(function(r){
+        setSyncing(false);
+        if(!silent||r.fail>0){
+          if(r.total===0) UI.toast('Everything is already synced');
+          else if(r.fail===0) UI.toast(r.ok+' '+(r.ok===1?'entry':'entries')+' synced');
+          else UI.toast(r.ok+' synced, '+r.fail+' failed — they stay on the device, tap Sync now to retry');
+        }
+        return refresh();
+      },function(e){
+        setSyncing(false);
+        if(!silent) UI.toast(e.message||String(e));
+      });
+  },[syncing,refresh]);
+
+  var trySync=useCallback(function(){
+    if(!data||!data.settings.sheetUrl||!navigator.onLine) return;
+    runSync(true);
+  },[data,runSync]);
+
+  if(!data) return html`<div className="wrap"><p className="muted" style=${{padding:'40px 0'}}>Opening your data…</p></div>`;
+
+  var active=data.questionnaires.filter(function(q){ return q.id===data.settings.activeQuestionnaireId; })[0]
+    || data.questionnaires[0] || null;
+  var activeAll=active?data.responses.filter(function(r){ return r.questionnaireId===active.id; }):[];
+  var activeResponses=liveOnly(activeAll);
+  var countsByQ={};
+  liveOnly(data.responses).forEach(function(r){ countsByQ[r.questionnaireId]=(countsByQ[r.questionnaireId]||0)+1; });
+  var pendingCount=data.responses.filter(function(r){ return r.syncStatus!=='synced'; }).length;
+
+  var page;
+  if(route==='overview') page=html`<${OverviewPage} questionnaires=${data.questionnaires} allResponses=${data.responses}
+      settings=${data.settings} onSyncNow=${function(){ runSync(false); }}/>`;
+  else if(route==='questionnaire') page=html`<${QuestionnairePage} questionnaires=${data.questionnaires}
+      settings=${data.settings} countsByQ=${countsByQ} refresh=${refresh} onSetActive=${setActive}/>`;
+  else if(route==='functions') page=html`<${FunctionsPage} settings=${data.settings} allResponses=${data.responses}
+      questionnaires=${data.questionnaires} refresh=${refresh} onSyncNow=${function(){ runSync(false); }}
+      theme=${theme} onTheme=${function(m){ setTheme(applyTheme(m)); }}
+      installable=${!!deferredPrompt} onInstall=${function(){ if(deferredPrompt){ deferredPrompt.prompt(); setDeferred(null); } }}/>`;
+  else page=html`<${InputPage} questionnaires=${data.questionnaires} active=${active} responses=${activeResponses}
+      allResponses=${activeAll} settings=${data.settings} refresh=${refresh} onSetActive=${setActive} trySync=${trySync}/>`;
+
+  return html`<${React.Fragment}>
+    <header className="topbar"><div className="topbar-in">
+      <span className="brand">Survey<span>Scholar</span></span>
+      <div style=${{flex:1}}></div>
+      ${!online?html`<span className="badge local"><i className="dot"></i>Offline</span>`:
+        (pendingCount>0?html`<span className="badge local num"><i className="dot"></i>${pendingCount} to sync</span>`:null)}
+      ${syncing?html`<span className="badge plain">Syncing…</span>`:null}
+      <button className="iconbtn theme-btn" onClick=${function(){ setTheme(applyTheme(effectiveTheme(theme)==='dark'?'light':'dark')); }}
+        aria-label=${effectiveTheme(theme)==='dark'?'Switch to light theme':'Switch to dark theme'}>
+        <${Icon} n=${effectiveTheme(theme)==='dark'?'sun':'moon'}/><//>
+    </div></header>
+
+    ${page}
+
+    <nav className="tabs"><div className="tabs-in">
+      ${TABS.map(function(t){
+        return html`<button key=${t[0]} className="tab" aria-current=${route===t[0]?'page':undefined}
+          onClick=${function(){ location.hash='#/'+t[0]; }}>
+          <${Icon} n=${t[2]}/><span>${t[1]}</span></button>`;
+      })}
+    </div></nav>
+
+    ${toast?html`<div className="toast" role="status">${toast}</div>`:null}
+    ${confirmState?html`<${Confirm} opts=${confirmState.opts} onDone=${confirmState.done}/>`:null}
+  <//>`;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* not served from a path with sw.js — fine */ });
+  });
+}
+})();
+</script>
+</body>
+</html>

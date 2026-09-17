@@ -1,0 +1,79 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **If this bug lost or corrupted collected data, say so in the title.**
+        Those are triaged first. Do not paste your Apps Script `/exec` URL or any
+        real respondent data into this form.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Create a questionnaire with ...
+        2. Save an entry ...
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Entry / data collection
+        - Questionnaire builder
+        - Skip logic / conditions
+        - Import (template)
+        - Import (Word / PDF)
+        - Export (Excel / CSV)
+        - Google Sheets sync
+        - Backup / restore
+        - Offline / install / PWA
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: "e.g. Pixel 7a, Chrome 128, installed to home screen"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: online
+    attributes:
+      label: Was the device online?
+      options: [Online, Offline, It changed during the problem, Not sure]
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      description: Optional. Chrome on Android can be inspected from a desktop via chrome://inspect.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have a JSON backup of the affected device, or the data doesn't matter
+        - label: This report contains no real respondent data and no `/exec` URL
+          required: true

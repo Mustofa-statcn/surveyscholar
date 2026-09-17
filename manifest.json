@@ -1,0 +1,16 @@
+{
+  "name": "SurveyScholar",
+  "short_name": "SurveyScholar",
+  "description": "Field survey data collection with offline entry, local storage and Google Sheets sync.",
+  "start_url": "./index.html#/input",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f3ef",
+  "theme_color": "#17403a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Setup and usage questions
+    url: https://github.com/Mustofa-statcn/surveyscholar/discussions
+    about: How do I connect a sheet, import a form, deploy this — ask here, not in issues.
+  - name: Security or privacy problem
+    url: https://github.com/Mustofa-statcn/surveyscholar/security/advisories/new
+    about: Report privately. Do not open a public issue.
+  - name: Documentation
+    url: https://github.com/Mustofa-statcn/surveyscholar/tree/main/docs
+    about: User guide, deployment, sync setup, troubleshooting.
