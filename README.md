@@ -1,4 +1,6 @@
 <div align="center">
+<img src="docs/banner.png" width="100%" alt="SurveyScholar — Offline. Durable. One HTML file.">
+
 
 <img src="icon-192.png" width="96" alt="SurveyScholar">
 
